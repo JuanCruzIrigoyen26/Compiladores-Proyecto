@@ -2,38 +2,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include "baison.tab.h"
+#include "bison.tab.h"
+
+extern int yylineno;
 %}
 
 %option noyywrap
-%option yylineno  /* para que bison pueda usar el número de línea */
-
+%option yylineno
 
 entero [0-9]
-letra [a-zA-Z]
-
+letra [a-zA-Z_]
 
 %%
 
-
-/* Literales e Identificadores */
-{entero}+   { /*yylval.valor.i = atol(yytext);*/
-              return ENTERO; }
-
-{letra}({letra}|{entero})* {
-              /*yylval.valor.s = strdup(yytext);*/
-              return ID;
-}
-
-/* Palabras Reservadas */
 "integer"   { return T_INT; } 
 "bool"      { return T_BOOL; } 
 "void"      { return T_VOID; } 
 "return"    { return T_RETURN; } 
-"true"      { /*yylval.valor.b = 1;*/
-              return T_TRUE; } 
-"false"     { /*yylval.valor.b = 0;*/ 
-              return T_FALSE; } 
+"true"      { return T_TRUE; } 
+"false"     { return T_FALSE; } 
 "extern"    { return T_EXTERN; }
 "program"   { return T_PROGRAM; } 
 "else"      { return T_ELSE; } 
@@ -41,51 +28,37 @@ letra [a-zA-Z]
 "if"        { return T_IF; } 
 "while"     { return T_WHILE; }
 
-/* Operadores Aritméticos */
-"+"         { /*yylval.valor.op = '+';*/
-              return T_SUMA; }
-"*"         { /*yylval.valor.op = '*';*/ 
-              return T_MULT; }
-"-"         { /*yylval.valor.op = '-';*/
-              return T_RESTA; }
-"/"         { /*yylval.valor.op = '/';*/
-              return T_DIVISION; }
-"%"         { /*yylval.valor.op = '%';*/
-              return T_MOD; }
+{entero}+   { return ENTERO; }
+{letra}({letra}|{entero})* { return ID; }
 
-/* Operadores Relacionales */
-">"         { /*yylval.valor.op = '>';*/
-			  return T_MAYOR; }
-"<"         { /*yylval.valor.op = '<';*/
-			  return T_MENOR; }
 "=="        { return T_IGUAL; }
+"+"         { return T_SUMA; }
+"*"         { return T_MULT; }
+"-"         { return T_RESTA; }
+"/"         { return T_DIVISION; }
+"%"         { return T_MOD; }
 
-/* Operadores Lógicos */
+">"         { return T_MAYOR; }
+"<"         { return T_MENOR; }
+
 "&&"        { return T_AND; }
 "||"        { return T_OR; }
+"!"         { return T_NOT; }
 
-/* Asignación */
-"="         { /*yylval.valor.op = '=';*/
-			  return T_ASIGNACION; }
+"="         { return T_ASIGNACION; }
 
-/* Delimitadores */
 ";"         { return T_PUNTOC; }
+","         { return T_COMA; }
 "("         { return T_PA; }
 ")"         { return T_PC; }
 "{"         { return T_LA; }
 "}"         { return T_LC; }
 
-/* Comentarios */
-/* Comentario de línea */
-"//".*          { /* ignorar hasta el final de la línea */ }
+"//".*              { /* ignorar comentario de línea */ }
+"/*"([^*]|\n)*"*/"  { /* ignorar comentario de bloque */ }
 
-/* Comentario de bloque */
-"/*"([^*]|\*+[^*/])*\*+"/"   { /* ignorar bloque */ }
+[ \t\r\n]+          { /* ignorar */ }
 
-/* Espacios en blanco */
-[ \t\r\n]+      { /* ignorar espacios y saltos de línea */ }
-
-/* Caracteres inválidos */
-.               { fprintf(stderr, "Caracter inválido '%s' en línea %d\n", yytext, yylineno); }
+.   { fprintf(stderr, "Caracter inválido '%s' en línea %d\n", yytext, yylineno); }
 
 %%
