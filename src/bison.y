@@ -8,6 +8,8 @@ int yylex(void);
 extern int yylineno;
 %}
 
+%debug
+
 %token ID
 %token ENTERO
 %token T_INT
@@ -69,16 +71,16 @@ decls:
     ;
 
 decl:
-      tipo ID T_ASIGNACION expr T_PUNTOC
-    | decl_metodo
+      tipo_decl ID decl_var_or_metodo
     ;
 
-decl_metodo:
-      tipo_func ID T_PA parametros_opt T_PC bloque
-    | tipo_func ID T_PA parametros_opt T_PC T_EXTERN T_PUNTOC
+decl_var_or_metodo:
+      T_ASIGNACION expr T_PUNTOC
+    | T_PA parametros T_PC bloque
+    | T_PA parametros T_PC T_EXTERN T_PUNTOC
     ;
 
-parametros_opt:
+parametros:
       /* vacio */
     | lista_param
     ;
@@ -106,7 +108,6 @@ sentencia:
     | T_RETURN expr T_PUNTOC
     | T_RETURN T_PUNTOC
     | T_PUNTOC
-    | bloque
     ;
 
 llamada_func:
@@ -128,12 +129,11 @@ lista_expr:
     ;
 
 lista_param:
-      /* vacio */
-    | tipo ID
+      tipo ID
     | lista_param T_COMA tipo ID
     ;
 
-tipo_func:
+tipo_decl:
       T_INT
     | T_BOOL
     | T_VOID
@@ -176,9 +176,10 @@ void yyerror(const char *s) {
 }
 
 int main(int argc, char **argv) {
-    if (yyparse() == 0) {
-        return 0;
-    } else {
-        return 1;
+    if(yyparse() == 0){
+      return 0;
+    }else{
+      return 1;
     }
 }
+
