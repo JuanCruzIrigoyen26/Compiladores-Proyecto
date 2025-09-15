@@ -1,0 +1,9 @@
+program {
+    integer suma(integer x, integer y) {
+        return x + y;
+    }
+
+    void main() {
+        integer r = suma(2, 3);
+    }
+}
