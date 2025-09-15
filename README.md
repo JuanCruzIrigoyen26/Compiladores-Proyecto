@@ -1,1 +1,12 @@
 # Compiladores-Proyecto
+
+Integrantes: Irigoyen Juan Cruz - Marysol Gutierrez
+
+En esta rama se encuentra la última versión del proyecto actual.
+
+## Ramas de Prueba
+
+Se han creado las siguientes ramas para probar las diferentes funcionalidades que se implementen durante el transcurso de desarrollo del proyecto:
+
+- Main (Última versión del proyecto)
+- scanner-parser (Rama de prueba del analizador léxico y sintáctico)
