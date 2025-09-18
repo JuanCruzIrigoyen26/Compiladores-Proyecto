@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "ast.h"
 #include "bison.tab.h"
 
 extern int yylineno;
@@ -19,8 +20,10 @@ letra [a-zA-Z_]
 "bool"      { return T_BOOL; } 
 "void"      { return T_VOID; } 
 "return"    { return T_RETURN; } 
-"true"      { return T_TRUE; } 
-"false"     { return T_FALSE; } 
+"true"      { yylval.valor.b = 1;
+              return T_TRUE; } 
+"false"     { yylval.valor.b = 0;
+              return T_FALSE; } 
 "extern"    { return T_EXTERN; }
 "program"   { return T_PROGRAM; } 
 "else"      { return T_ELSE; } 
@@ -28,24 +31,38 @@ letra [a-zA-Z_]
 "if"        { return T_IF; } 
 "while"     { return T_WHILE; }
 
-{entero}+   { return ENTERO; }      /* Literales e Identificadores */
-{letra}({letra}|{entero})* { return ID; }
+{entero}+   { yylval.valor.i = atol(yytext);    /* Literales e Identificadores */
+              return ENTERO; }      
+{letra}({letra}|{entero})* { yylval.valor.s = strdup(yytext);
+                             return ID; }
 
-"+"         { return T_SUMA; }      /* Operadores Aritméticos */
-"*"         { return T_MULT; }
-"-"         { return T_RESTA; }
-"/"         { return T_DIVISION; }
-"%"         { return T_MOD; }
+"+"         { yylval.valor.op = OP_SUMA;      /* Operadores Aritméticos */
+              return T_SUMA; }      
+"*"         { yylval.valor.op = OP_MULT;
+              return T_MULT; }
+"-"         { yylval.valor.op = OP_RESTA;
+              return T_RESTA; }
+"/"         { yylval.valor.op = OP_DIV;
+              return T_DIVISION; }
+"%"         { yylval.valor.op = OP_MOD;
+              return T_MOD; }
 
-">"         { return T_MAYOR; }     /* Operadores Aritméticos */
-"<"         { return T_MENOR; }
-"=="        { return T_IGUAL; }
+">"         { yylval.valor.op = OP_MAYOR;
+              return T_MAYOR; }     /* Operadores Aritméticos */
+"<"         { yylval.valor.op = OP_MENOR;
+              return T_MENOR; }
+"=="        { yylval.valor.op = OP_IGUAL;
+              return T_IGUAL; }
 
-"&&"        { return T_AND; }       /* Operadores Lógicos */
-"||"        { return T_OR; }
-"!"         { return T_NOT; }
+"&&"        { yylval.valor.op = OP_AND;       /* Operadores Lógicos */
+              return T_AND; }       
+"||"        { yylval.valor.op = OP_OR;
+              return T_OR; }
+"!"         { yylval.valor.op = OP_NOT;
+              return T_NOT; }
 
-"="         { return T_ASIGNACION; }    /* Asignación */
+"="         { yylval.valor.op = OP_ASIG;       /* Asignación */
+              return T_ASIGNACION; }    
 
 ";"         { return T_PUNTOC; }    /* Delimitadores */
 ","         { return T_COMA; }

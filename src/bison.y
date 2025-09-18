@@ -2,22 +2,30 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ast.h"
+
+Nodo* raiz = NULL;
 
 void yyerror(const char *s);
 int yylex(void);
 extern int yylineno;
 %}
 
+%union {
+    Nodo* nodo;      
+    AstValor valor;
+}
+
 %debug
 
 /* Tokens Literales, Identificadoes y Tipos */
-%token ID
-%token ENTERO
-%token T_INT
-%token T_BOOL
-%token T_VOID
-%token T_TRUE
-%token T_FALSE
+%token <valor> ID
+%token <valor> ENTERO
+%token <valor> T_INT
+%token <valor> T_BOOL
+%token <valor> T_VOID
+%token <valor> T_TRUE
+%token <valor> T_FALSE
 
 /* Tokens de Operadores Aritméticos */
 %token T_SUMA
@@ -50,8 +58,13 @@ extern int yylineno;
 %token T_THEN
 %token T_ELSE
 %token T_WHILE
-%token T_RETURN
+%token <valor> T_RETURN
 %token T_PROGRAM
+
+%type <nodo> prog decls decl decl_var_or_metodo parametros bloque
+%type <nodo> decls_sentencias decl_or_sentencia sentencia llamada_func
+%type <nodo> asignacion expresiones lista_expr lista_param
+%type <nodo> tipo_decl tipo expr valor
 
 %left T_OR
 %left T_AND
