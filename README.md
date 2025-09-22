@@ -10,3 +10,4 @@ Se han creado las siguientes ramas para probar las diferentes funcionalidades qu
 
 - Main (Última versión del proyecto)
 - scanner-parser (Rama de prueba del analizador léxico y sintáctico)
+- ast-ts (Rama de Prueba del árbol de sintaxis abstracta y tabla de símbolos)
