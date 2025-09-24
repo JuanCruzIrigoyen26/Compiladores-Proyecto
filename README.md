@@ -2,11 +2,19 @@
 
 Integrantes: Irigoyen Juan Cruz - Marysol Gutierrez
 
-En esta rama se encuentra la última versión del proyecto actual.
+Esta es la rama de prueba para el árbol de sintaxis abstracta y la tabla de símbolos.
 
-## Ramas de Prueba
+## Compilación y Ejecución
 
-Se han creado las siguientes ramas para probar las diferentes funcionalidades que se implementen durante el transcurso de desarrollo del proyecto:
+Para compilar y ejecutar los archivos escriba los siguientes comandos en terminal:
 
-- Main (Última versión del proyecto)
-- scanner-parser (Rama de prueba del analizador léxico y sintáctico)
+```
+
+bison -d bison.y
+flex lexico.l
+gcc -o parser bison.tab.c lex.yy.c ast.c ts.c main.c -lfl
+./parser tests/nombreTest.txt
+
+```
+
+En la carpeta tests se encuentran diferentes ejemplos para probar el parser. Por ejemplo: tests/test1.txt
