@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ast.h"
+#include "ts.h"
 
 Nodo* raiz = NULL;
 
@@ -105,12 +106,19 @@ decls:
 decl:
       tipo_decl ID decl_var_or_metodo
       {
-          AstValor v = {0};
-          v.s = $2.s;   // nombre del identificador
           if ($3 && $3->tipo == AST_DECL_FUNC) {
               $3->v->s = $2.s; // asignamos el nombre de la función al nodo
+              AstValor vFunc = {0};
+              vFunc.s = $2.s;
+              vFunc.tipoDef = $1->v->tipoDef;
+              vFunc.esFuncion = 1;
+              insertarSimbolo(&vFunc);
               $$ = $3;
           } else {
+              AstValor v = {0};
+              v.s = $2.s;
+              v.tipoDef = $1->v->tipoDef;
+              insertarSimbolo(&v);
               $$ = nodo_binario(AST_DECL_VAR, v, $1, $3);
           }
       }
@@ -126,16 +134,17 @@ decl_var_or_metodo:
 /* Parámetros (Chequeo de vacio) */
 parametros:
       /* vacio */ { $$ = NULL; }
-    | lista_param { $$ = $1; }
+    | { abrirNivel(); } lista_param { $$ = $2; }
 ;
 
 
 /* Bloque de sentencias */
 bloque:
-      T_LA decls_sentencias T_LC
+      T_LA { abrirNivel(); } decls_sentencias T_LC
       {
-          Nodo* declsNodo = $2 ? nodo_binario(AST_DECLS, (AstValor){0}, $2, NULL) : NULL;
+          Nodo* declsNodo = $3 ? nodo_binario(AST_DECLS, (AstValor){0}, $3, NULL) : NULL;
           $$ = nodo_binario(AST_BLOQUE, (AstValor){0}, declsNodo, NULL);
+          cerrarNivel();
       }
 ;
 
@@ -151,6 +160,8 @@ decl_or_sentencia:
       {
           AstValor v = {0};
           v.s = $2.s;
+          v.tipoDef = $1->v->tipoDef;
+          insertarSimbolo(&v);
           $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
       }
     | sentencia { $$ = $1; }
@@ -200,12 +211,16 @@ lista_param:
       {
           AstValor v = {0};
           v.s = $2.s;
+          v.tipoDef = $1->v->tipoDef;
+          insertarSimbolo(&v);
           $$ = nodo_hoja(AST_PARAM, v);
       }
     | lista_param T_COMA tipo ID
       {
           AstValor v = {0};
           v.s = $4.s;
+          v.tipoDef = $3->v->tipoDef;
+          insertarSimbolo(&v);
           $$ = nodo_binario(AST_PARAMS, (AstValor){0}, $1, nodo_hoja(AST_PARAM, v));
       }
 ;
@@ -256,12 +271,4 @@ void yyerror(const char *s) {
     fprintf(stderr, "Error sintáctico en línea %d: %s\n", yylineno, s);
 }
 
-int main(int argc, char **argv) {
-    if(yyparse() == 0){
-      imprimir_ast(raiz, 0);
-      return 0;
-    }else{
-      return 1;
-    }
-}
 

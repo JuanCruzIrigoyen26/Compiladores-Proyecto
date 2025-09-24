@@ -53,7 +53,9 @@ typedef struct {
     long   i;        // Valor si es entero
     int    b;        // Valor si es booleano
     char  *s;        // Nombre si es identificador
-    TipoOp op;      // Operador si es nodo de operación
+    TipoOp op;       // Operador si es nodo de operación
+    int flag;        // Marca si la variable fue inicializada
+    int esFuncion;   // Marca si es funcion o variable
 } AstValor;
 
 // Nodo del AST
