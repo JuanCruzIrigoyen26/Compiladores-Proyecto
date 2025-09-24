@@ -1,0 +1,27 @@
+program {
+    integer x = 5;
+    bool flag = true;
+
+    integer cuadrado(integer n) {
+        return n * n;
+    }
+
+    void mostrar(integer y) extern;
+
+    void main() {
+        integer z = 10;
+        x = cuadrado(z);
+
+        if (x > 50) then {
+            mostrar(x);
+        } else {
+            mostrar(z);
+        }
+
+        while (z > 0) {
+            z = z - 1;
+        }
+
+        return;
+    }
+}
