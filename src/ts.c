@@ -4,6 +4,7 @@
 #include "ts.h"
 
 static Nivel *pila = NULL;
+static Nivel *pilaHistorica = NULL;
 
 // Inicializa la pila vacía
 void inicializarTS() {
@@ -29,16 +30,8 @@ void cerrarNivel() {
     Nivel *nivelCerrado = pila;
     pila = pila->sig;
 
-    // Liberar símbolos del nivel
-    Simbolo *s = nivelCerrado->tabla;
-    while (s) {
-        Simbolo *aux = s;
-        s = s->sig;
-        free(aux->v->s); // liberar nombre
-        free(aux->v);    // liberar valor asociado
-        free(aux);
-    }
-    free(nivelCerrado);
+    nivelCerrado->sig = pilaHistorica;
+    pilaHistorica = nivelCerrado;
 }
 
 // Inserta un símbolo en el nivel actual
@@ -79,46 +72,81 @@ Simbolo* buscarSimbolo(char *nombre) {
 
 // Imprime todas las tablas
 void imprimir_tabla() {
-    int totalNiveles = 0;
+    printf("Tabla de Simbolos (TS):\n");
+
+    int nivelActivo = 0;
     Nivel *aux = pila;
     while (aux) {
-        totalNiveles++;
-        aux = aux->sig;
-    }
-
-    int nivelActual = totalNiveles - 1;
-    aux = pila;
-    while (aux) {
-        printf("Nivel %d:\n", nivelActual);
+        if (aux->tabla)
+            printf("Nivel activo %d:\n", nivelActivo);
 
         Simbolo *simbolo = aux->tabla;
         while (simbolo) {
             if (simbolo->v->esFuncion) {
-                if (simbolo->v->tipoDef == INT) {
+                if (simbolo->v->tipoDef == INT)
                     printf("  %s (función, int)\n", simbolo->v->s);
-                } else if (simbolo->v->tipoDef == BOOL) {
+                else if (simbolo->v->tipoDef == BOOL)
                     printf("  %s (función, bool)\n", simbolo->v->s);
-                } else if (simbolo->v->tipoDef == VOID) {
+                else if (simbolo->v->tipoDef == VOID)
                     printf("  %s (función, void)\n", simbolo->v->s);
-                } else {
-                    printf("  %s (tipo desconocido)\n", simbolo->v->s);
-                }
-                
-            }else if (!(simbolo->v->esFuncion)) {
-                if (simbolo->v->tipoDef == INT) {
+                else
+                    printf("  %s (función, tipo desconocido)\n", simbolo->v->s);
+            } else {
+                if (simbolo->v->tipoDef == INT)
                     printf("  %s : int\n", simbolo->v->s);
-                } else if (simbolo->v->tipoDef == BOOL) {
+                else if (simbolo->v->tipoDef == BOOL)
                     printf("  %s : bool\n", simbolo->v->s);
-                } else {
+                else
                     printf("  %s (tipo desconocido)\n", simbolo->v->s);
-                }
             }
             simbolo = simbolo->sig;
         }
 
         aux = aux->sig;
-        nivelActual--;
+        nivelActivo++;
+    }
+
+    int nivelCerrado = 0;
+    aux = pilaHistorica;
+    while (aux) {
+        if (aux->tabla)
+            printf("Nivel cerrado %d:\n", nivelCerrado);
+
+        Simbolo *simbolo = aux->tabla;
+        while (simbolo) {
+            if (simbolo->v->esFuncion) {
+                if (simbolo->v->tipoDef == INT)
+                    printf("  %s (función, int)\n", simbolo->v->s);
+                else if (simbolo->v->tipoDef == BOOL)
+                    printf("  %s (función, bool)\n", simbolo->v->s);
+                else if (simbolo->v->tipoDef == VOID)
+                    printf("  %s (función, void)\n", simbolo->v->s);
+                else
+                    printf("  %s (función, tipo desconocido)\n", simbolo->v->s);
+            } else {
+                if (simbolo->v->tipoDef == INT)
+                    printf("  %s : int\n", simbolo->v->s);
+                else if (simbolo->v->tipoDef == BOOL)
+                    printf("  %s : bool\n", simbolo->v->s);
+                else
+                    printf("  %s (tipo desconocido)\n", simbolo->v->s);
+            }
+            simbolo = simbolo->sig;
+        }
+
+        aux = aux->sig;
+        nivelCerrado++;
     }
 }
+// Funcion auxiliar para insertar los parametros en la tabla
+void insertarParametros(Nodo* params) {
+    if (!params) return;
 
-
+    if (params->tipo == AST_PARAM) {
+        insertarSimbolo(params->v);
+    }
+    else if (params->tipo == AST_PARAMS) {
+        insertarParametros(params->hi);
+        insertarParametros(params->hd);
+    }
+}

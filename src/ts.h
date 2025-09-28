@@ -20,5 +20,5 @@ void cerrarNivel();
 Simbolo* insertarSimbolo(AstValor *valor);
 Simbolo* buscarSimbolo(char *nombre);
 void imprimir_tabla();
-
+void insertarParametros(struct Nodo* params);
 #endif
