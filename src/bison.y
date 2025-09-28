@@ -63,13 +63,12 @@ extern int yylineno;
 %token T_PROGRAM
 
 /* Declaramos qué reglas devuelven nodos */
-%type <nodo> prog decls decl decl_var_or_metodo parametros bloque
+%type <nodo> prog decls decl decl_func decl_func_extern decl_var_global parametros bloque bloque_cuerpo
 %type <nodo> decls_sentencias decl_or_sentencia sentencia llamada_func
 %type <nodo> asignacion expresiones lista_expr lista_param
 %type <nodo> tipo_decl tipo expr valor
 
-
-/* Precedencias */
+/* Precedencias (incluye dangling-else) */
 %left T_OR
 %left T_AND
 %left T_IGUAL
@@ -83,6 +82,8 @@ extern int yylineno;
 %right T_NOT
 %right T_ASIGNACION
 %right UMINUS
+%nonassoc T_THEN
+%nonassoc T_ELSE
 
 %%
 
@@ -95,54 +96,81 @@ prog:
       }
 ;
 
-
 /* Declaraciones (Chequeo de vacio) */
 decls:
       /* vacio */ { $$ = NULL; }
-    | decls decl  { $$ = nodo_binario(AST_DECLS, (AstValor){0}, $1, $2); }
+    | decl decls  { $$ = nodo_binario(AST_DECLS, (AstValor){0}, $1, $2); }
 ;
 
-/* Declaración */
+/* Tipos de declaración */
 decl:
-      tipo_decl ID decl_var_or_metodo
+      decl_func
+    | decl_func_extern
+    | decl_var_global
+;
+
+/* Definición de función */
+decl_func:
+      tipo_decl ID T_PA parametros T_PC
       {
-          if ($3 && $3->tipo == AST_DECL_FUNC) {
-              $3->v->s = $2.s; // asignamos el nombre de la función al nodo
-              AstValor vFunc = {0};
-              vFunc.s = $2.s;
-              vFunc.tipoDef = $1->v->tipoDef;
-              vFunc.esFuncion = 1;
-              insertarSimbolo(&vFunc);
-              $$ = $3;
-          } else {
-              AstValor v = {0};
-              v.s = $2.s;
-              v.tipoDef = $1->v->tipoDef;
-              insertarSimbolo(&v);
-              $$ = nodo_binario(AST_DECL_VAR, v, $1, $3);
-          }
+          AstValor vFunc = (AstValor){0};
+          vFunc.s = $2.s;
+          vFunc.tipoDef = $1->v->tipoDef;
+          vFunc.esFuncion = 1;
+          insertarSimbolo(&vFunc);
+          abrirNivel();
+          insertarParametros($4);
+      }
+      bloque_cuerpo { $$ = nodo_ternario(AST_DECL_FUNC, (AstValor){0}, $4, $7, NULL); }
+;
+
+/* Declaración extern */
+decl_func_extern:
+      tipo_decl ID T_PA parametros T_PC T_EXTERN T_PUNTOC
+      {
+          AstValor vFunc = (AstValor){0};
+          vFunc.s = $2.s;
+          vFunc.tipoDef = $1->v->tipoDef;
+          vFunc.esFuncion = 1;
+          insertarSimbolo(&vFunc);
+          $$ = nodo_ternario(AST_DECL_FUNC, (AstValor){0}, $4, NULL, NULL);
       }
 ;
 
-/* Declaración de variable o método */
-decl_var_or_metodo:
-      T_ASIGNACION expr T_PUNTOC { $$ = $2; }
-    | T_PA parametros T_PC bloque { $$ = nodo_ternario(AST_DECL_FUNC, (AstValor){0}, $2, $4, NULL); }
-    | T_PA parametros T_PC T_EXTERN T_PUNTOC { $$ = nodo_ternario(AST_DECL_FUNC, (AstValor){0}, $2, NULL, NULL); }
+/* Variable global */
+decl_var_global:
+      tipo_decl ID T_ASIGNACION expr T_PUNTOC
+      {
+          AstValor v = (AstValor){0};
+          v.s = $2.s;
+          v.tipoDef = $1->v->tipoDef;
+          insertarSimbolo(&v);
+          $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
+      }
 ;
+
 
 /* Parámetros (Chequeo de vacio) */
 parametros:
       /* vacio */ { $$ = NULL; }
-    | { abrirNivel(); } lista_param { $$ = $2; }
+    | lista_param { $$ = $1; }
 ;
 
-
-/* Bloque de sentencias */
+/* Bloque normal (if, while) */
 bloque:
       T_LA { abrirNivel(); } decls_sentencias T_LC
       {
           Nodo* declsNodo = $3 ? nodo_binario(AST_DECLS, (AstValor){0}, $3, NULL) : NULL;
+          $$ = nodo_binario(AST_BLOQUE, (AstValor){0}, declsNodo, NULL);
+          cerrarNivel();
+      }
+;
+
+/* Bloque de cuerpo de función */
+bloque_cuerpo:
+      T_LA decls_sentencias T_LC
+      {
+          Nodo* declsNodo = $2 ? nodo_binario(AST_DECLS, (AstValor){0}, $2, NULL) : NULL;
           $$ = nodo_binario(AST_BLOQUE, (AstValor){0}, declsNodo, NULL);
           cerrarNivel();
       }
@@ -154,11 +182,11 @@ decls_sentencias:
     | decls_sentencias decl_or_sentencia { $$ = nodo_binario(AST_STMTS, (AstValor){0}, $1, $2); }
 ;
 
-/* Declaracion de variable o sentencia */
+/* Declaracion de variable local o sentencia */
 decl_or_sentencia:
       tipo ID T_ASIGNACION expr T_PUNTOC
       {
-          AstValor v = {0};
+          AstValor v = (AstValor){0};
           v.s = $2.s;
           v.tipoDef = $1->v->tipoDef;
           insertarSimbolo(&v);
@@ -171,26 +199,38 @@ decl_or_sentencia:
 sentencia:
       asignacion T_PUNTOC { $$ = $1; }
     | llamada_func T_PUNTOC { $$ = $1; }
-    | T_IF T_PA expr T_PC T_THEN bloque { $$ = nodo_binario(AST_IF, (AstValor){0}, $3, $6); }
+    | T_IF T_PA expr T_PC T_THEN bloque %prec T_THEN { $$ = nodo_binario(AST_IF, (AstValor){0}, $3, $6); }
     | T_IF T_PA expr T_PC T_THEN bloque T_ELSE bloque { $$ = nodo_ternario(AST_IF, (AstValor){0}, $3, $6, $8); }
     | T_WHILE T_PA expr T_PC bloque { $$ = nodo_binario(AST_WHILE, (AstValor){0}, $3, $5); }
     | T_RETURN expr T_PUNTOC { $$ = nodo_binario(AST_RETURN, (AstValor){0}, $2, NULL); }
     | T_RETURN T_PUNTOC { $$ = nodo_hoja(AST_RETURN, (AstValor){0}); }
     | T_PUNTOC { $$ = NULL; }
+    | bloque   { $$ = $1; }
 ;
 
 /* Llamada a método/función */
 llamada_func:
-      ID T_PA expresiones T_PC
-      {
-          $$ = nodo_binario(AST_LLAMADA, (AstValor){0}, nodo_hoja(AST_ID, $1), $3);
-      }
+    ID T_PA expresiones T_PC
+    {
+        Simbolo* s = buscarSimbolo($1.s);
+        if (!s) {
+            fprintf(stderr, "Error semántico: función '%s' no declarada (línea %d)\n", $1.s, yylineno);
+        } else if (!s->v->esFuncion) {
+            fprintf(stderr, "Error semántico: '%s' no es una función (línea %d)\n", $1.s, yylineno);
+        }
+        $$ = nodo_binario(AST_LLAMADA, (AstValor){0}, nodo_hoja(AST_ID, $1), $3);
+    }
 ;
-
 
 /* Asignación */
 asignacion:
-      ID T_ASIGNACION expr { $$ = nodo_binario(AST_ASIGNACION, (AstValor){0}, nodo_hoja(AST_ID, $1), $3); }
+      ID T_ASIGNACION expr
+      { 
+        if (!buscarSimbolo($1.s)){
+            fprintf(stderr, "Error semántico: variable '%s' usada sin declarar (línea %d)\n", $1.s, yylineno);
+        }
+        $$ = nodo_binario(AST_ASIGNACION, (AstValor){0}, nodo_hoja(AST_ID, $1), $3);
+      }
 ;
 
 /* Expresiones (Chequeo de vacio) */
@@ -209,33 +249,31 @@ lista_expr:
 lista_param:
       tipo ID
       {
-          AstValor v = {0};
+          AstValor v = (AstValor){0};
           v.s = $2.s;
           v.tipoDef = $1->v->tipoDef;
-          insertarSimbolo(&v);
           $$ = nodo_hoja(AST_PARAM, v);
       }
     | lista_param T_COMA tipo ID
       {
-          AstValor v = {0};
+          AstValor v = (AstValor){0};
           v.s = $4.s;
           v.tipoDef = $3->v->tipoDef;
-          insertarSimbolo(&v);
           $$ = nodo_binario(AST_PARAMS, (AstValor){0}, $1, nodo_hoja(AST_PARAM, v));
       }
 ;
 
 /* Tipo para declaraciones */
 tipo_decl:
-      T_INT   { AstValor v = {0}; v.tipoDef = INT; $$ = nodo_hoja(AST_INT, v); }
-    | T_BOOL  { AstValor v = {0}; v.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, v); }
-    | T_VOID  { AstValor v = {0}; v.tipoDef = VOID; $$ = nodo_hoja(AST_INT, v); }
+      T_INT   { AstValor v = (AstValor){0}; v.tipoDef = INT; $$ = nodo_hoja(AST_INT, v); }
+    | T_BOOL  { AstValor v = (AstValor){0}; v.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, v); }
+    | T_VOID  { AstValor v = (AstValor){0}; v.tipoDef = VOID; $$ = nodo_hoja(AST_VOID, v); }
 ;
 
 /* Tipo para parámetros */
 tipo:
-      T_INT   { AstValor v = {0}; v.tipoDef = INT; $$ = nodo_hoja(AST_INT, v); }
-    | T_BOOL  { AstValor v = {0}; v.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, v); }
+      T_INT   { AstValor v = (AstValor){0}; v.tipoDef = INT; $$ = nodo_hoja(AST_INT, v); }
+    | T_BOOL  { AstValor v = (AstValor){0}; v.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, v); }
 ;
 
 /* Expresion */
@@ -259,7 +297,12 @@ expr:
 
 /* Valor de variable */
 valor:
-      ID { $$ = nodo_hoja(AST_ID, $1); }
+      ID { 
+            if (!buscarSimbolo($1.s)){
+                fprintf(stderr, "Error semántico: variable '%s' usada sin declarar (línea %d)\n", $1.s, yylineno);
+            }
+            $$ = nodo_hoja(AST_ID, $1); 
+        }
     | ENTERO { $1.tipoDef = INT; $$ = nodo_hoja(AST_INT, $1); }
     | T_TRUE { $1.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, $1); }
     | T_FALSE { $1.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, $1); }
@@ -270,5 +313,3 @@ valor:
 void yyerror(const char *s) {
     fprintf(stderr, "Error sintáctico en línea %d: %s\n", yylineno, s);
 }
-
-
