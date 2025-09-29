@@ -57,6 +57,7 @@ typedef struct {
     TipoOp op;       // Operador si es nodo de operación
     int flag;        // Marca si la variable fue inicializada
     int esFuncion;   // Marca si es funcion o variable
+    int linea;       // Línea donde aparece el token
 } AstValor;
 
 // Nodo del AST

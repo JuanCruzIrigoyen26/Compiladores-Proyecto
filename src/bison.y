@@ -125,6 +125,7 @@ perfil_func:
           vFunc.s = strdup($2.s);
           vFunc.tipoDef = $1->v->tipoDef;
           vFunc.esFuncion = 1;
+          vFunc.linea = yylineno;
           insertarSimbolo(&vFunc);
           Nodo* n = nodo_ternario(AST_DECL_FUNC, vFunc, $4, NULL, NULL);
           abrirNivel();
@@ -141,6 +142,7 @@ decl_func_extern:
           vFunc.s = strdup($2.s);
           vFunc.tipoDef = $1->v->tipoDef;
           vFunc.esFuncion = 1;
+          vFunc.linea = yylineno;
           insertarSimbolo(&vFunc);
           $$ = nodo_ternario(AST_DECL_FUNC, vFunc, $4, NULL, NULL);
       }
@@ -153,7 +155,8 @@ decl_var_global:
           AstValor v = (AstValor){0};
           v.s = $2.s;
           v.tipoDef = $1->v->tipoDef;
-        if ($4 && $4->tipo == AST_INT) {
+          v.linea = yylineno;
+          if ($4 && $4->tipo == AST_INT) {
               v.i = $4->v->i;
           } else if ($4 && $4->tipo == AST_BOOL) {
               v.b = $4->v->b;
@@ -203,6 +206,7 @@ decl_or_sentencia:
           AstValor v = (AstValor){0};
           v.s = $2.s;
           v.tipoDef = $1->v->tipoDef;
+          v.linea = yylineno;
           if ($4 && $4->tipo == AST_INT) {
               v.i = $4->v->i;
           } else if ($4 && $4->tipo == AST_BOOL) {
@@ -231,6 +235,7 @@ sentencia:
 llamada_func:
     ID T_PA expresiones T_PC
     {
+        $1.linea = yylineno;
         $$ = nodo_binario(AST_LLAMADA, (AstValor){0}, nodo_hoja(AST_ID, $1), $3);
     }
 ;
@@ -239,6 +244,7 @@ llamada_func:
 asignacion:
       ID T_ASIGNACION expr
       { 
+        $1.linea = yylineno;
         $$ = nodo_binario(AST_ASIGNACION, (AstValor){0}, nodo_hoja(AST_ID, $1), $3);
       }
 ;
@@ -262,6 +268,7 @@ lista_param:
           AstValor v = (AstValor){0};
           v.s = $2.s;
           v.tipoDef = $1->v->tipoDef;
+          v.linea = yylineno;
           $$ = nodo_hoja(AST_PARAM, v);
       }
     | lista_param T_COMA tipo ID
@@ -269,6 +276,7 @@ lista_param:
           AstValor v = (AstValor){0};
           v.s = $4.s;
           v.tipoDef = $3->v->tipoDef;
+          v.linea = yylineno;
           $$ = nodo_binario(AST_PARAMS, (AstValor){0}, $1, nodo_hoja(AST_PARAM, v));
       }
 ;
@@ -307,10 +315,10 @@ expr:
 
 /* Valor de variable */
 valor:
-      ID { $$ = nodo_hoja(AST_ID, $1); }
-    | ENTERO { $1.tipoDef = INT; $$ = nodo_hoja(AST_INT, $1); }
-    | T_TRUE { $1.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, $1); }
-    | T_FALSE { $1.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, $1); }
+      ID { $1.linea = yylineno; $$ = nodo_hoja(AST_ID, $1); }
+    | ENTERO { $1.tipoDef = INT; $1.linea = yylineno; $$ = nodo_hoja(AST_INT, $1); }
+    | T_TRUE { $1.tipoDef = BOOL;  $1.linea = yylineno; $$ = nodo_hoja(AST_BOOL, $1); }
+    | T_FALSE { $1.tipoDef = BOOL; $1.linea = yylineno; $$ = nodo_hoja(AST_BOOL, $1); }
 ;
 
 %%
