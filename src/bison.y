@@ -63,7 +63,7 @@ extern int yylineno;
 %token T_PROGRAM
 
 /* Declaramos qué reglas devuelven nodos */
-%type <nodo> prog decls decl decl_func decl_func_extern decl_var_global parametros bloque bloque_cuerpo
+%type <nodo> prog decls decl decl_func perfil_func decl_func_extern decl_var_global parametros bloque bloque_cuerpo
 %type <nodo> decls_sentencias decl_or_sentencia sentencia llamada_func
 %type <nodo> asignacion expresiones lista_expr lista_param
 %type <nodo> tipo_decl tipo expr valor
@@ -111,29 +111,38 @@ decl:
 
 /* Definición de función */
 decl_func:
+      perfil_func bloque_cuerpo
+      {
+        $$ = nodo_ternario(AST_DECL_FUNC, *($1->v), $1->hi, $2, NULL);
+      }
+;
+
+perfil_func:
       tipo_decl ID T_PA parametros T_PC
       {
           AstValor vFunc = (AstValor){0};
-          vFunc.s = $2.s;
+          vFunc.s = strdup($2.s);
           vFunc.tipoDef = $1->v->tipoDef;
           vFunc.esFuncion = 1;
           insertarSimbolo(&vFunc);
+          Nodo* n = nodo_ternario(AST_DECL_FUNC, vFunc, $4, NULL, NULL);
           abrirNivel();
           insertarParametros($4);
+          $$ = n;          
       }
-      bloque_cuerpo { $$ = nodo_ternario(AST_DECL_FUNC, (AstValor){0}, $4, $7, NULL); }
 ;
+
 
 /* Declaración extern */
 decl_func_extern:
       tipo_decl ID T_PA parametros T_PC T_EXTERN T_PUNTOC
       {
           AstValor vFunc = (AstValor){0};
-          vFunc.s = $2.s;
+          vFunc.s = strdup($2.s);
           vFunc.tipoDef = $1->v->tipoDef;
           vFunc.esFuncion = 1;
           insertarSimbolo(&vFunc);
-          $$ = nodo_ternario(AST_DECL_FUNC, (AstValor){0}, $4, NULL, NULL);
+          $$ = nodo_ternario(AST_DECL_FUNC, vFunc, $4, NULL, NULL);
       }
 ;
 
