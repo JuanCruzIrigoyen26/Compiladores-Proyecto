@@ -117,6 +117,7 @@ decl_func:
       }
 ;
 
+/* Perfil de la función */
 perfil_func:
       tipo_decl ID T_PA parametros T_PC
       {
@@ -131,7 +132,6 @@ perfil_func:
           $$ = n;          
       }
 ;
-
 
 /* Declaración extern */
 decl_func_extern:
