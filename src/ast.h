@@ -20,7 +20,8 @@ typedef enum {
     AST_OP,           // Operación (suma, resta, etc.)
     AST_ID,           // Identificador
     AST_INT,          // Literal entero
-    AST_BOOL          // Literal booleano
+    AST_BOOL,          // Literal booleano
+    AST_VOID
 } AstTipo;
 
 
