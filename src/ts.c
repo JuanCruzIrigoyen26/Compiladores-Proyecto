@@ -92,12 +92,15 @@ void imprimir_tabla() {
                 else
                     printf("  %s (función, tipo desconocido)\n", simbolo->v->s);
             } else {
-                if (simbolo->v->tipoDef == INT)
-                    printf("  %s : int\n", simbolo->v->s);
-                else if (simbolo->v->tipoDef == BOOL)
-                    printf("  %s : bool\n", simbolo->v->s);
-                else
+                if (simbolo->v->tipoDef == INT) {
+                    printf("  %s : int", simbolo->v->s);
+                    printf(" = %ld\n", simbolo->v->i);
+                } else if (simbolo->v->tipoDef == BOOL) {
+                    printf("  %s : bool", simbolo->v->s);
+                    printf(" = %s\n", simbolo->v->b ? "true" : "false");
+                } else {
                     printf("  %s (tipo desconocido)\n", simbolo->v->s);
+                }
             }
             simbolo = simbolo->sig;
         }
@@ -124,12 +127,15 @@ void imprimir_tabla() {
                 else
                     printf("  %s (función, tipo desconocido)\n", simbolo->v->s);
             } else {
-                if (simbolo->v->tipoDef == INT)
-                    printf("  %s : int\n", simbolo->v->s);
-                else if (simbolo->v->tipoDef == BOOL)
-                    printf("  %s : bool\n", simbolo->v->s);
-                else
+                if (simbolo->v->tipoDef == INT){
+                    printf("  %s : int", simbolo->v->s);
+                    printf(" = %ld\n", simbolo->v->i);
+                }else if (simbolo->v->tipoDef == BOOL) {
+                    printf("  %s : bool", simbolo->v->s);
+                    printf(" = %s\n", simbolo->v->b ? "true" : "false");
+                }else{
                     printf("  %s (tipo desconocido)\n", simbolo->v->s);
+                }
             }
             simbolo = simbolo->sig;
         }

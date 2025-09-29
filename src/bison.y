@@ -144,6 +144,11 @@ decl_var_global:
           AstValor v = (AstValor){0};
           v.s = $2.s;
           v.tipoDef = $1->v->tipoDef;
+        if ($4 && $4->tipo == AST_INT) {
+              v.i = $4->v->i;
+          } else if ($4 && $4->tipo == AST_BOOL) {
+              v.b = $4->v->b;
+          }
           insertarSimbolo(&v);
           $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
       }
@@ -189,6 +194,11 @@ decl_or_sentencia:
           AstValor v = (AstValor){0};
           v.s = $2.s;
           v.tipoDef = $1->v->tipoDef;
+          if ($4 && $4->tipo == AST_INT) {
+              v.i = $4->v->i;
+          } else if ($4 && $4->tipo == AST_BOOL) {
+              v.b = $4->v->b;
+          }
           insertarSimbolo(&v);
           $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
       }
