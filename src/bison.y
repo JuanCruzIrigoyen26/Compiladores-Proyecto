@@ -231,12 +231,6 @@ sentencia:
 llamada_func:
     ID T_PA expresiones T_PC
     {
-        Simbolo* s = buscarSimbolo($1.s);
-        if (!s) {
-            fprintf(stderr, "Error semántico: función '%s' no declarada (línea %d)\n", $1.s, yylineno);
-        } else if (!s->v->esFuncion) {
-            fprintf(stderr, "Error semántico: '%s' no es una función (línea %d)\n", $1.s, yylineno);
-        }
         $$ = nodo_binario(AST_LLAMADA, (AstValor){0}, nodo_hoja(AST_ID, $1), $3);
     }
 ;
@@ -245,9 +239,6 @@ llamada_func:
 asignacion:
       ID T_ASIGNACION expr
       { 
-        if (!buscarSimbolo($1.s)){
-            fprintf(stderr, "Error semántico: variable '%s' usada sin declarar (línea %d)\n", $1.s, yylineno);
-        }
         $$ = nodo_binario(AST_ASIGNACION, (AstValor){0}, nodo_hoja(AST_ID, $1), $3);
       }
 ;
@@ -316,12 +307,7 @@ expr:
 
 /* Valor de variable */
 valor:
-      ID { 
-            if (!buscarSimbolo($1.s)){
-                fprintf(stderr, "Error semántico: variable '%s' usada sin declarar (línea %d)\n", $1.s, yylineno);
-            }
-            $$ = nodo_hoja(AST_ID, $1); 
-        }
+      ID { $$ = nodo_hoja(AST_ID, $1); }
     | ENTERO { $1.tipoDef = INT; $$ = nodo_hoja(AST_INT, $1); }
     | T_TRUE { $1.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, $1); }
     | T_FALSE { $1.tipoDef = BOOL; $$ = nodo_hoja(AST_BOOL, $1); }
