@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "bison.tab.h"
 #include "ts.h" 
+#include "analizador_semantico.h"
 
 extern Nodo* raiz;
 extern FILE *yyin;  
@@ -17,8 +18,8 @@ int main(int argc, char *argv[]) {
     if (yyparse() == 0) {
         printf("\nÁrbol de sintaxis abstracta (AST):\n");
         imprimir_ast(raiz, 0);
-        
-      imprimir_tabla(); // Mostramos las tablas
+        imprimir_tabla();
+        chequearSemantica(raiz);
     }
 
     if (yyin != stdin){
