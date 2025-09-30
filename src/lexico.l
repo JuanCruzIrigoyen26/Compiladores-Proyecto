@@ -6,10 +6,14 @@
 #include "bison.tab.h"
 
 extern int yylineno;
+int contador_comentario = 0;
+
 %}
 
 %option noyywrap
 %option yylineno
+
+%x COMENTARIO
 
 entero [0-9]
 letra [a-zA-Z_]
@@ -72,7 +76,13 @@ letra [a-zA-Z_]
 "}"         { return T_LC; }
 
 "//".*              { /* ignorar comentario de línea */ }   /* Comentario de Línea */
-"/*"([^*]|\n)*"*/"  { /* ignorar comentario de bloque */ }  /* Comentario de Bloque */
+
+"/*"                { contador_comentario = 1; BEGIN(COMENTARIO); } /* Comentario de Bloque */
+
+<COMENTARIO>"/*"    { contador_comentario++; }
+<COMENTARIO>"*/"    { if (--contador_comentario == 0) BEGIN(INITIAL); }
+<COMENTARIO>\n      { yylineno++; }
+<COMENTARIO>.       { /* ignorar */ }
 
 [ \t\r\n]+          { /* ignorar espacios y saltos de línea */ }  /* Espacios en blanco */
 
