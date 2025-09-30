@@ -67,6 +67,16 @@ Simbolo* buscarSimbolo(char *nombre) {
         }
         n = n->sig;
     }
+    Nivel *nc = pilaHistorica;
+    while (nc) {
+        Simbolo *simbolo = nc->tabla;
+        while (simbolo) {
+            if (strcmp(simbolo->v->s, nombre) == 0)
+                return simbolo;
+            simbolo = simbolo->sig;
+        }
+        nc = nc->sig;
+    }
     return NULL;
 }
 
