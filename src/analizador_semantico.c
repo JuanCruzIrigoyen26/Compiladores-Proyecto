@@ -10,13 +10,21 @@ void errorSemantico(int linea, const char* msg) {
 void chequearSemantica(Nodo* nodo) {
     if (!nodo) return;
 
+    chequearSemantica(nodo->hi);
+    chequearSemantica(nodo->hd);
+    chequearSemantica(nodo->extra);
+    
     switch (nodo->tipo) {
-        case AST_ID:
-        if (!buscarSimbolo(nodo->v->s)) {
-            errorSemantico(nodo->v->linea, "Identificador usado antes de ser declarado");
-        }
+        case AST_ID: 
+            Simbolo* sim = buscarSimbolo(nodo->v->s);
+            if (!sim) {
+                errorSemantico(nodo->v->linea, "Identificador usado antes de ser declarado");
+            } else {
+                nodo->v->tipoDef = sim->v->tipoDef;  
+            }
             break;
             
+        case AST_IF:    
         case AST_WHILE:
             if (nodo->hi && nodo->hi->v->tipoDef != BOOL) {
                 errorSemantico(nodo->hi->v->linea, "Condición de if/while debe ser de tipo bool");
@@ -24,36 +32,47 @@ void chequearSemantica(Nodo* nodo) {
             break;
         
         case AST_OP:
-            switch (nodo->v->op) {
-                case OP_SUMA: case OP_RESTA: case OP_MULT: case OP_DIV: case OP_MOD:
-                case OP_MAYOR: case OP_MENOR:
-                    if (nodo->hi && nodo->hd) {
-                        if (nodo->hi->v->tipoDef != INT || nodo->hd->v->tipoDef != INT) {
-                            errorSemantico(nodo->v->linea, "Operandos deben ser enteros");
-                        }
+        switch (nodo->v->op) {
+            case OP_SUMA: case OP_RESTA: case OP_MULT: case OP_DIV: case OP_MOD:
+                if (nodo->hi && nodo->hd) {
+                    if (nodo->hi->v->tipoDef != INT || nodo->hd->v->tipoDef != INT) {
+                        errorSemantico(nodo->v->linea, "Operandos deben ser enteros");
                     }
-                    break;
-       
-                case OP_IGUAL:
-                    if (nodo->hi && nodo->hd) {
-                        if (nodo->hi->v->tipoDef != nodo->hd->v->tipoDef) {
-                            errorSemantico(nodo->v->linea, "Operandos de == deben ser del mismo tipo");
-                        }
+                }
+                nodo->v->tipoDef = INT; 
+                break;
+
+            case OP_MAYOR: case OP_MENOR: case OP_IGUAL:
+                if (nodo->hi && nodo->hd) {
+                    if (nodo->hi->v->tipoDef != nodo->hd->v->tipoDef) {
+                        errorSemantico(nodo->v->linea, "Operandos deben ser del mismo tipo");
                     }
-                    break;
-                
-                case OP_AND: case OP_OR: case OP_NOT:
-                    if (nodo->hi && nodo->hi->v->tipoDef != BOOL) {
-                        errorSemantico(nodo->v->linea, "Operandos de operador lógico deben ser bool");
-                    }
-                    if (nodo->hd && nodo->hd->v->tipoDef != BOOL) {
-                        errorSemantico(nodo->v->linea, "Operandos de operador lógico deben ser bool");
-                    }
-                    break;
-                default:
-                    break;
+                }
+                nodo->v->tipoDef = BOOL; 
+                break;
+
+            case OP_AND: case OP_OR:
+                if (nodo->hi && nodo->hi->v->tipoDef != BOOL) {
+                    errorSemantico(nodo->v->linea, "Operandos de operador lógico deben ser bool");
+                }
+                if (nodo->hd && nodo->hd->v->tipoDef != BOOL) {
+                    errorSemantico(nodo->v->linea, "Operandos de operador lógico deben ser bool");
+                }
+                nodo->v->tipoDef = BOOL; 
+                break;
+
+            case OP_NOT:
+                if (nodo->hi && nodo->hi->v->tipoDef != BOOL) {
+                    errorSemantico(nodo->v->linea, "Operando de NOT debe ser bool");
+                }
+                nodo->v->tipoDef = BOOL; 
+                break;
+
+            default:
+                break;
             }
-            break;    
+            break;
+    
 
         case AST_ASIGNACION:
             if (nodo->hi && nodo->hd) {
@@ -68,9 +87,5 @@ void chequearSemantica(Nodo* nodo) {
         default:
             break;
     }
-
-    // Recursión sobre hijos
-    chequearSemantica(nodo->hi);
-    chequearSemantica(nodo->hd);
-    chequearSemantica(nodo->extra);
 }
+
