@@ -161,7 +161,11 @@ decl_var_global:
           } else if ($4 && $4->tipo == AST_BOOL) {
               v.b = $4->v->b;
           }
-          insertarSimbolo(&v);
+          if (existeEnNivelActual(v.s)) {
+            fprintf(stderr, "Error semántico en línea %d: Identificador declarado dos veces en el mismo bloque\n", yylineno);
+          } else {
+            insertarSimbolo(&v);
+          }
           $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
       }
 ;
@@ -212,7 +216,11 @@ decl_or_sentencia:
           } else if ($4 && $4->tipo == AST_BOOL) {
               v.b = $4->v->b;
           }
-          insertarSimbolo(&v);
+          if (existeEnNivelActual(v.s)) {
+            fprintf(stderr, "Error semántico en línea %d: Identificador declarado dos veces en el mismo bloque\n", yylineno);
+          } else {
+            insertarSimbolo(&v);
+          }
           $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
       }
     | sentencia { $$ = $1; }
