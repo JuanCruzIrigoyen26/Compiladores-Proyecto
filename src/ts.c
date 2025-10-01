@@ -53,7 +53,6 @@ Simbolo* insertarSimbolo(AstValor *valor) {
     return nuevoSimbolo;
 }
 
-
 // Busca un símbolo desde el nivel actual hacia arriba
 Simbolo* buscarSimbolo(char *nombre) {
     Nivel *n = pila;
@@ -103,11 +102,9 @@ void imprimir_tabla() {
                     printf("  %s (función, tipo desconocido)\n", simbolo->v->s);
             } else {
                 if (simbolo->v->tipoDef == INT) {
-                    printf("  %s : int", simbolo->v->s);
-                    printf(" = %ld\n", simbolo->v->i);
+                    printf("  %s : int = %ld\n", simbolo->v->s, simbolo->v->i);
                 } else if (simbolo->v->tipoDef == BOOL) {
-                    printf("  %s : bool", simbolo->v->s);
-                    printf(" = %s\n", simbolo->v->b ? "true" : "false");
+                    printf("  %s : bool = %s\n", simbolo->v->s, simbolo->v->b ? "true" : "false");
                 } else {
                     printf("  %s (tipo desconocido)\n", simbolo->v->s);
                 }
@@ -138,11 +135,9 @@ void imprimir_tabla() {
                     printf("  %s (función, tipo desconocido)\n", simbolo->v->s);
             } else {
                 if (simbolo->v->tipoDef == INT){
-                    printf("  %s : int", simbolo->v->s);
-                    printf(" = %ld\n", simbolo->v->i);
+                    printf("  %s : int = %ld\n", simbolo->v->s, simbolo->v->i);
                 }else if (simbolo->v->tipoDef == BOOL) {
-                    printf("  %s : bool", simbolo->v->s);
-                    printf(" = %s\n", simbolo->v->b ? "true" : "false");
+                    printf("  %s : bool = %s\n", simbolo->v->s, simbolo->v->b ? "true" : "false");
                 }else{
                     printf("  %s (tipo desconocido)\n", simbolo->v->s);
                 }
@@ -154,6 +149,7 @@ void imprimir_tabla() {
         nivelCerrado++;
     }
 }
+
 // Funcion auxiliar para insertar los parametros en la tabla
 void insertarParametros(Nodo* params) {
     if (!params) return;
@@ -165,4 +161,17 @@ void insertarParametros(Nodo* params) {
         insertarParametros(params->hi);
         insertarParametros(params->hd);
     }
+}
+
+// Chequea si el simbolo existe en el bloque actual
+int existeEnNivelActual(const char* nombre) {
+    if (!pila || !nombre) return 0;
+    Simbolo *sim = pila->tabla;
+    while (sim) {
+        if (sim->v && sim->v->s && strcmp(sim->v->s, nombre) == 0) {
+            return 1;
+        }
+        sim = sim->sig;
+    }
+    return 0;
 }

@@ -5,5 +5,5 @@
 #include "ts.h"
 
 void chequearSemantica(Nodo* nodo);
-
+void verificarMainFinal();
 #endif

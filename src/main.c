@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
         imprimir_ast(raiz, 0);
         imprimir_tabla();
         chequearSemantica(raiz);
+        verificarMainFinal();
     }
 
     if (yyin != stdin){
