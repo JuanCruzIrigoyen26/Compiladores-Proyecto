@@ -1,0 +1,5 @@
+program {
+    integer x = 1;
+    integer x = 2;   // Error: variable duplicada en mismo bloque
+    void main(){}
+}

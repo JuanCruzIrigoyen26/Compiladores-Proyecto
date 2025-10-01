@@ -1,0 +1,9 @@
+program {
+    integer cuadrado(integer n) {
+        return n * n;
+    }
+
+    void main() {
+        cuadrado();   //  Error: falta argumento
+    }
+}

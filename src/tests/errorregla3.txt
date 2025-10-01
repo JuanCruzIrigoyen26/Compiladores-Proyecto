@@ -1,0 +1,4 @@
+program {
+    void main() { }
+    void main() { }   // Error: más de un main
+}

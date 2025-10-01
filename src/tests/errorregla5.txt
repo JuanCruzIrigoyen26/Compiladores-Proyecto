@@ -1,0 +1,7 @@
+program {
+    integer x = 5;
+
+    void main() {
+        x();   // Error: x no es una función
+    }
+}
