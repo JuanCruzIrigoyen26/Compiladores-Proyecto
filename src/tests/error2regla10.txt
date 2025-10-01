@@ -1,0 +1,9 @@
+program {
+    void main() {
+        bool a = true;
+        bool b = false;
+        if (a < b) then {   // ERROR: < solo aplica a integer
+            a = b;
+        }
+    }
+}

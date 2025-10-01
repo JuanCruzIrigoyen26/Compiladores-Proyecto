@@ -42,8 +42,20 @@ void chequearSemantica(Nodo* nodo) {
                 nodo->v->tipoDef = INT; 
                 break;
 
-            case OP_MAYOR: case OP_MENOR: case OP_IGUAL:
+            case OP_MAYOR: case OP_MENOR: 
                 if (nodo->hi && nodo->hd) {
+                    if (nodo->hi->v->tipoDef!= INT || nodo->hd->v->tipoDef != INT) {
+                        errorSemantico(nodo->v->linea, "Los operando deben ser de tipo integer");
+                    }
+                    if (nodo->hi->v->tipoDef != nodo->hd->v->tipoDef) {
+                        errorSemantico(nodo->v->linea, "Operandos deben ser del mismo tipo");
+                    }
+                }
+                nodo->v->tipoDef = BOOL; 
+                break;
+
+            case OP_IGUAL:
+             if (nodo->hi && nodo->hd) {
                     if (nodo->hi->v->tipoDef != nodo->hd->v->tipoDef) {
                         errorSemantico(nodo->v->linea, "Operandos deben ser del mismo tipo");
                     }

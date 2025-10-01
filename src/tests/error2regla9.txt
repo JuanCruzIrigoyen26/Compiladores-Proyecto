@@ -1,0 +1,9 @@
+program {
+    void main() {
+        integer n = 3;
+        while (n) {   // ERROR: condición no es bool
+            n = n + 1;
+        }
+    }
+}
+

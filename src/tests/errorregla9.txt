@@ -1,0 +1,8 @@
+program {
+    void main() {
+        integer n = 3;
+        if (n) then {   // ERROR: condición no es bool, es integer
+            n = n + 1;
+        }
+    }
+}

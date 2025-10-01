@@ -1,0 +1,7 @@
+program {
+    void main() {
+        bool flag = false;
+        integer n = 42;
+        flag = n;   // ERROR: flag es bool, n es integer
+    }
+}
