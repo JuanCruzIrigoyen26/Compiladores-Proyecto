@@ -41,6 +41,7 @@ void verificarMainFinal() {
     }
 }
 
+// Chequeos de operaciones
 static void chequearOp(Nodo* nodo) {
     if (!nodo) return;
     if (nodo->hi) chequearNodo(nodo->hi);
@@ -91,6 +92,7 @@ static void chequearOp(Nodo* nodo) {
     }
 }
 
+// Chequeo de bloque
 static void chequearBloque(Nodo* bloque) {
     if (!bloque) return;
     abrirNivel();
@@ -100,12 +102,14 @@ static void chequearBloque(Nodo* bloque) {
     cerrarNivel();
 }
 
+// Chequeo de lista de sequencias, declaraciones y sentencias
 static void chequearSeq(Nodo* lista) {
     if (!lista) return;
     if (lista->hi) chequearNodo(lista->hi);
     if (lista->hd) chequearNodo(lista->hd);
 }
 
+// Chequeo principal de nodo
 static void chequearNodo(Nodo* nodo) {
     if (!nodo) return;
 
