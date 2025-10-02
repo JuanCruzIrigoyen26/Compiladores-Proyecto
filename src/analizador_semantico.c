@@ -15,6 +15,15 @@ static void llenarTiposParametros(Nodo* params, tipoDef* arrayTipos, int* indice
 static int contarArgumentosAST(Nodo* argumentos);
 static void llenarTiposArgumentos(Nodo* argumentos, tipoDef* arrayArguments, int* indice, int max);
 
+static int lineaDe(Nodo* n) {
+    if (!n) return 0;
+    if (n->v && n->v->linea > 0) return n->v->linea;
+    int l = 0;
+    l = lineaDe(n->hi); if (l) return l;
+    l = lineaDe(n->hd); if (l) return l;
+    l = lineaDe(n->extra); return l;
+}
+
 // Funcion que muestra el error semantico encontrado
 void errorSemantico(int linea, const char* msg) {
     fprintf(stderr, "Error semántico en línea %d: %s\n", linea, msg);
@@ -41,7 +50,7 @@ static void chequearOp(Nodo* nodo) {
         case OP_SUMA: case OP_RESTA: case OP_MULT: case OP_DIV: case OP_MOD: {
             if (!nodo->hi || !nodo->hd ||
                 nodo->hi->v->tipoDef != INT || nodo->hd->v->tipoDef != INT) {
-                errorSemantico(nodo->v->linea, "Operandos deben ser enteros");
+                errorSemantico(lineaDe(nodo), "Operandos deben ser enteros");
             }
             nodo->v->tipoDef = INT;
             break;
@@ -49,16 +58,16 @@ static void chequearOp(Nodo* nodo) {
         case OP_MAYOR: case OP_MENOR: {
             if (!nodo->hi || !nodo->hd ||
                 nodo->hi->v->tipoDef != INT || nodo->hd->v->tipoDef != INT) {
-                errorSemantico(nodo->v->linea, "Operandos relacionales deben ser enteros");
+                errorSemantico(lineaDe(nodo), "Operandos relacionales deben ser enteros");
             }
             nodo->v->tipoDef = BOOL;
             break;
         }
         case OP_IGUAL: {
             if (!nodo->hi || !nodo->hd) {
-                errorSemantico(nodo->v->linea, "Comparación de igualdad incompleta");
+                errorSemantico(lineaDe(nodo), "Comparación de igualdad incompleta");
             } else if (nodo->hi->v->tipoDef != nodo->hd->v->tipoDef) {
-                errorSemantico(nodo->v->linea, "Operandos de == deben ser del mismo tipo");
+                errorSemantico(lineaDe(nodo), "Operandos de == deben ser del mismo tipo");
             }
             nodo->v->tipoDef = BOOL;
             break;
@@ -66,14 +75,14 @@ static void chequearOp(Nodo* nodo) {
         case OP_AND: case OP_OR: {
             if (!nodo->hi || !nodo->hd ||
                 nodo->hi->v->tipoDef != BOOL || nodo->hd->v->tipoDef != BOOL) {
-                errorSemantico(nodo->v->linea, "Operandos lógicos deben ser bool");
+                errorSemantico(lineaDe(nodo), "Operandos lógicos deben ser bool");
             }
             nodo->v->tipoDef = BOOL;
             break;
         }
         case OP_NOT: {
             if (!nodo->hi || nodo->hi->v->tipoDef != BOOL) {
-                errorSemantico(nodo->v->linea, "Operando de ! debe ser bool");
+                errorSemantico(lineaDe(nodo), "Operando de ! debe ser bool");
             }
             nodo->v->tipoDef = BOOL;
             break;
@@ -166,14 +175,14 @@ static void chequearNodo(Nodo* nodo) {
             if (nodo->hd) chequearNodo(nodo->hd);
             if (nodo->hi && nodo->hd &&
                 nodo->hi->v->tipoDef != nodo->hd->v->tipoDef) {
-                errorSemantico(nodo->v ? nodo->v->linea : 0, "Tipo de la asignación no coincide con la variable");
+                errorSemantico(lineaDe(nodo->hi), "Tipo de la asignación no coincide con la variable");
             }
             break;
         }
         case AST_IF:{
             if (nodo->hi) chequearNodo(nodo->hi);
             if (!nodo->hi || nodo->hi->v->tipoDef != BOOL) {
-                errorSemantico(nodo->hi ? nodo->hi->v->linea : 0, "Condición de if debe ser bool");
+                errorSemantico(lineaDe(nodo->hi), "Condición de if debe ser bool");
             }
             if (nodo->hd) chequearNodo(nodo->hd);
             if (nodo->extra) chequearNodo(nodo->extra);
@@ -182,7 +191,7 @@ static void chequearNodo(Nodo* nodo) {
         case AST_WHILE: {
             if (nodo->hi) chequearNodo(nodo->hi);
             if (!nodo->hi || nodo->hi->v->tipoDef != BOOL) {
-                errorSemantico(nodo->hi ? nodo->hi->v->linea : 0, "Condición de while debe ser bool");
+                errorSemantico(lineaDe(nodo->hi), "Condición de while debe ser bool");
             }
             if (nodo->hd) chequearNodo(nodo->hd);
             break;
@@ -197,13 +206,13 @@ static void chequearNodo(Nodo* nodo) {
             if (nodo->hi) chequearNodo(nodo->hi);
             if (tipoFuncionActual == VOID) {
                 if (nodo->hi) {
-                    errorSemantico(nodo->v ? nodo->v->linea : 0, "Return en función void no debe devolver expresión");
+                    errorSemantico(lineaDe(nodo), "Return en función void no debe devolver expresión");
                 }
             } else {
                 if (!nodo->hi) {
-                    errorSemantico(nodo->v ? nodo->v->linea : 0, "Return en función con valor debe devolver expresión");
+                    errorSemantico(lineaDe(nodo), "Return en función con valor debe devolver expresión");
                 } else if (nodo->hi->v->tipoDef != tipoFuncionActual) {
-                    errorSemantico(nodo->v ? nodo->v->linea : 0, "Tipo de retorno no coincide con lo declarado");
+                    errorSemantico(lineaDe(nodo), "Tipo de retorno no coincide con lo declarado");
                 }
             }
             break;
@@ -243,11 +252,11 @@ static void chequearLlamada(Nodo* llamada) {
     // Busco si existe un símbolo con ese nombre y que sea función 
     Simbolo* simbolo = buscarSimbolo((char*)nombre);
     if (!simbolo) {
-        errorSemantico(llamada->v ? llamada->v->linea : 0, "Función invocada no declarada");
+        errorSemantico(lineaDe(llamada->hi), "Función invocada no declarada");
         return;
     }
     if (!simbolo->v->esFuncion) {
-        errorSemantico(llamada->v ? llamada->v->linea : 0, "El identificador invocado no es una función");
+        errorSemantico(lineaDe(llamada->hi), "El identificador invocado no es una función");
         return;
     }
 
@@ -261,7 +270,7 @@ static void chequearLlamada(Nodo* llamada) {
     int nParams = contarParametrosAST(decl->hi);
     int nArgumentos = contarArgumentosAST(llamada->hd);
     if (nParams != nArgumentos) {
-        errorSemantico(llamada->v ? llamada->v->linea : 0, "Cantidad de argumentos no coincide con la definición");
+        errorSemantico(lineaDe(llamada->hi), "Cantidad de argumentos no coincide con la definición");
         return;
     }
 
@@ -272,7 +281,7 @@ static void chequearLlamada(Nodo* llamada) {
     llenarTiposArgumentos(llamada->hd, tiposArgumentos, &indiceArgumentos, 64);
     for (int i = 0; i < nParams && i < indiceArgumentos; ++i) {
         if (tiposParams[i] != tiposArgumentos[i]) {
-            errorSemantico(llamada->v ? llamada->v->linea : 0, "Tipo de argumento no coincide con el parámetro");
+            errorSemantico(lineaDe(llamada->hi), "Tipo de argumento no coincide con el parámetro");
         }
     }
 }

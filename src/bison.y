@@ -233,8 +233,16 @@ sentencia:
     | T_IF T_PA expr T_PC T_THEN bloque %prec T_THEN { $$ = nodo_binario(AST_IF, (AstValor){0}, $3, $6); }
     | T_IF T_PA expr T_PC T_THEN bloque T_ELSE bloque { $$ = nodo_ternario(AST_IF, (AstValor){0}, $3, $6, $8); }
     | T_WHILE T_PA expr T_PC bloque { $$ = nodo_binario(AST_WHILE, (AstValor){0}, $3, $5); }
-    | T_RETURN expr T_PUNTOC { $$ = nodo_binario(AST_RETURN, (AstValor){0}, $2, NULL); }
-    | T_RETURN T_PUNTOC { $$ = nodo_hoja(AST_RETURN, (AstValor){0}); }
+    | T_RETURN expr T_PUNTOC { 
+            AstValor v = (AstValor){0};
+            v.linea = yylineno;
+            $$ = nodo_binario(AST_RETURN, v, $2, NULL); 
+        }
+    | T_RETURN T_PUNTOC { 
+            AstValor v = (AstValor){0};
+            v.linea = yylineno;
+            $$ = nodo_hoja(AST_RETURN, v);
+        }
     | T_PUNTOC { $$ = NULL; }
     | bloque   { $$ = $1; }
 ;
@@ -244,7 +252,9 @@ llamada_func:
     ID T_PA expresiones T_PC
     {
         $1.linea = yylineno;
-        $$ = nodo_binario(AST_LLAMADA, (AstValor){0}, nodo_hoja(AST_ID, $1), $3);
+        AstValor v = (AstValor){0}; 
+        v.linea = yylineno;
+        $$ = nodo_binario(AST_LLAMADA, v, nodo_hoja(AST_ID, $1), $3);
     }
 ;
 
@@ -253,7 +263,9 @@ asignacion:
       ID T_ASIGNACION expr
       { 
         $1.linea = yylineno;
-        $$ = nodo_binario(AST_ASIGNACION, (AstValor){0}, nodo_hoja(AST_ID, $1), $3);
+        AstValor v = (AstValor){0}; 
+        v.linea = yylineno;
+        $$ = nodo_binario(AST_ASIGNACION, v, nodo_hoja(AST_ID, $1), $3);
       }
 ;
 
@@ -305,19 +317,24 @@ tipo:
 /* Expresion */
 expr:
       valor { $$ = $1; }
-    | ID T_PA expresiones T_PC { $$ = nodo_binario(AST_LLAMADA, (AstValor){0}, nodo_hoja(AST_ID, $1), $3); }
-    | expr T_SUMA expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_SUMA}, $1, $3); }
-    | expr T_RESTA expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_RESTA}, $1, $3); }
-    | expr T_MULT expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_MULT}, $1, $3); }
-    | expr T_DIVISION expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_DIV}, $1, $3); }
-    | expr T_MOD expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_MOD}, $1, $3); }
-    | expr T_MAYOR expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_MAYOR}, $1, $3); }
-    | expr T_MENOR expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_MENOR}, $1, $3); }
-    | expr T_IGUAL expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_IGUAL}, $1, $3); }
-    | expr T_AND expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_AND}, $1, $3); }
-    | expr T_OR expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_OR}, $1, $3); }
-    | T_NOT expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_NOT}, $2, NULL); }
-    | T_RESTA expr %prec UMINUS { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_RESTA}, nodo_hoja(AST_INT, (AstValor){.i=0, .tipoDef=INT}), $2); }
+    | ID T_PA expresiones T_PC { 
+            $1.linea = yylineno;
+            AstValor v = (AstValor){0};
+            v.linea = yylineno;
+            $$ = nodo_binario(AST_LLAMADA, v, nodo_hoja(AST_ID, $1), $3); 
+        }
+    | expr T_SUMA expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_SUMA, .linea=yylineno}, $1, $3); }
+    | expr T_RESTA expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_RESTA, .linea=yylineno}, $1, $3); }
+    | expr T_MULT expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_MULT, .linea=yylineno}, $1, $3); }
+    | expr T_DIVISION expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_DIV, .linea=yylineno}, $1, $3); }
+    | expr T_MOD expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_MOD, .linea=yylineno}, $1, $3); }
+    | expr T_MAYOR expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_MAYOR, .linea=yylineno}, $1, $3); }
+    | expr T_MENOR expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_MENOR, .linea=yylineno}, $1, $3); }
+    | expr T_IGUAL expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_IGUAL, .linea=yylineno}, $1, $3); }
+    | expr T_AND expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_AND, .linea=yylineno}, $1, $3); }
+    | expr T_OR expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_OR, .linea=yylineno}, $1, $3); }
+    | T_NOT expr { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_NOT, .linea=yylineno}, $2, NULL); }
+    | T_RESTA expr %prec UMINUS { $$ = nodo_binario(AST_OP, (AstValor){.op=OP_RESTA, .linea=yylineno}, nodo_hoja(AST_INT, (AstValor){.i=0, .tipoDef=INT, .linea=yylineno}), $2); }
     | T_PA expr T_PC { $$ = $2; }
 ;
 
