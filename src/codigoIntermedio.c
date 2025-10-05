@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "codigo_intermedio.h"
+#include "codigoIntermedio.h"
 
 static void generarSentencia(CodigoIntermedio* generador, Nodo* n);
 

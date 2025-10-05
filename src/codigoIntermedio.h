@@ -1,5 +1,5 @@
-#ifndef CODIGO_INTERMEDIO_H
-#define CODIGO_INTERMEDIO_H
+#ifndef CODIGOINTERMEDIO_H
+#define CODIGOINTERMEDIO_H
 
 #include "ast.h"
 
