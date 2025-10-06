@@ -12,7 +12,7 @@ Para compilar y ejecutar los archivos escriba los siguientes comandos en termina
 
 bison -d bison.y
 flex lexico.l
-gcc -o parser bison.tab.c lex.yy.c ast.c ts.c analizador_semantico.c codigointermedio.c main.c -lfl
+gcc -o parser bison.tab.c lex.yy.c ast.c ts.c analizador_semantico.c codigoIntermedio.c main.c -lfl
 ./parser tests/nombreTest.txt
 
 ```
