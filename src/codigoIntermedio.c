@@ -4,6 +4,9 @@
 #include "codigoIntermedio.h"
 
 static void generarSentencia(CodigoIntermedio* generador, Nodo* n);
+static char* nuevaTemp(CodigoIntermedio* generador);
+static char* nuevoLabel(CodigoIntermedio* generador);
+static void crearInstr(CodigoIntermedio* generador, TipoInstr tipo, AstValor arg1, AstValor arg2, AstValor res, AstValor label);
 
 // Crea el generador de codigo intermedio
 CodigoIntermedio* crearGenerador() {
@@ -19,44 +22,39 @@ void generarCodigoIntermedio(CodigoIntermedio* generador, Nodo* raiz) {
     generarSentencia(generador, raiz);
 }
 
-// Impresion del codigo intermedio
 void imprimirCodigoIntermedio(CodigoIntermedio* generador) {
     // Implementacion pendiente
 }
 
+// Genera el codigo intermedio para funciones/metodos
 static void generarFuncion(CodigoIntermedio* generador, Nodo* n) {
     if (!n || n->tipo != AST_DECL_FUNC) return;
 
-    const char* nombre = n->v->s;
-    crearInstr(generador, INSTR_FUNC_BEGIN, nombre, NULL, NULL, NULL);
+    AstValor nombre = *n->v;
+    crearInstr(generador, INSTR_FUNC_BEGIN, (AstValor){0}, (AstValor){0}, nombre, (AstValor){0});
 
     generarSentencia(generador, n->hd);
 
-    crearInstr(generador, INSTR_FUNC_END, nombre, NULL, NULL, NULL);
+    crearInstr(generador, INSTR_FUNC_END, (AstValor){0}, (AstValor){0}, nombre, (AstValor){0});
 }
 
 // Genera el codigo intermedio para declaraciones de variables globales o formales
 static void generarDeclaracion(CodigoIntermedio* generador, Nodo* n, int esGlobal) {
     if (!n || n->tipo != AST_DECL_VAR) return;
 
-    const char* tipoStr;
-    if (n->v->tipoDef == INT) {
-        tipoStr = "int";
-    } else if (n->v->tipoDef == BOOL) {
-        tipoStr = "bool";
-    } else {
-        fprintf(stderr, "Error interno: tipo de variable desconocido\n");
-        tipoStr = "int";
-    }
+    AstValor tipoVar = *n->v;
 
     if (esGlobal)
-        crearInstr(generador, INSTR_VAR_GLOBAL, tipoStr, NULL, n->v->s, NULL);
+        crearInstr(generador, INSTR_VAR_GLOBAL, (AstValor){0}, (AstValor){0}, tipoVar, (AstValor){0});
     else
-        crearInstr(generador, INSTR_VAR_LOCAL, tipoStr, NULL, n->v->s, NULL);
+        crearInstr(generador, INSTR_VAR_LOCAL, (AstValor){0}, (AstValor){0}, tipoVar, (AstValor){0});
 
     if (n->hd) {
         char* expr = generarExpr(generador, n->hd);
-        crearInstr(generador, INSTR_ASSIGN, expr, NULL, n->v->s, NULL);
+        AstValor valorExpr;
+        valorExpr.s = expr;
+        valorExpr.tipoDef = n->v->tipoDef;
+        crearInstr(generador, INSTR_ASSIGN, valorExpr, (AstValor){0}, *n->v, (AstValor){0});
         free(expr);
     }
 }
@@ -76,7 +74,14 @@ static void generarSentencia(CodigoIntermedio* generador, Nodo* n) {
 
         case AST_ASIGNACION: {
             char* aux = generarExpr(generador, n->hd);
-            crearInstr(generador, INSTR_ASSIGN, aux, NULL, n->hi->v->s, NULL);
+            AstValor valorAux;
+            valorAux.s = aux;
+            if (n->v != NULL) {
+                valorAux.tipoDef = n->v->tipoDef;
+            } else {
+                valorAux.tipoDef = INT;
+            }
+            crearInstr(generador, INSTR_ASSIGN, valorAux, (AstValor){0}, *n->hi->v, (AstValor){0});
             free(aux);
             break;
         }
@@ -93,12 +98,22 @@ static void generarSentencia(CodigoIntermedio* generador, Nodo* n) {
             char* charElse = nuevoLabel(generador);
             char* finIf = nuevoLabel(generador);
 
-            crearInstr(generador, INSTR_IF_FALSE, cond, NULL, charElse, NULL);
+            AstValor condValor;
+            condValor.s = cond;
+            condValor.tipoDef = BOOL;
+
+            AstValor elseValor;
+            elseValor.s = charElse;
+
+            AstValor finValor;
+            finValor.s = finIf;
+
+            crearInstr(generador, INSTR_IF, condValor, (AstValor){0}, elseValor, (AstValor){0});
             generarSentencia(generador, n->hd);
-            crearInstr(generador, INSTR_GOTO, NULL, NULL, finIf, NULL);
-            crearInstr(generador, INSTR_LABEL, NULL, NULL, NULL, charElse);
+            crearInstr(generador, INSTR_GOTO, (AstValor){0}, (AstValor){0}, finValor, (AstValor){0});
+            crearInstr(generador, INSTR_LABEL, (AstValor){0}, (AstValor){0}, (AstValor){0}, elseValor);
             if (n->extra) generarSentencia(generador, n->extra);
-            crearInstr(generador, INSTR_LABEL, NULL, NULL, NULL, finIf);
+            crearInstr(generador, INSTR_LABEL, (AstValor){0}, (AstValor){0}, (AstValor){0}, finValor);
 
             free(cond);
             free(charElse);
@@ -110,12 +125,23 @@ static void generarSentencia(CodigoIntermedio* generador, Nodo* n) {
             char* comienzoWhile = nuevoLabel(generador);
             char* finWhile = nuevoLabel(generador);
 
-            crearInstr(generador, INSTR_LABEL, NULL, NULL, NULL, comienzoWhile);
+            AstValor labelInicio;
+            labelInicio.s = comienzoWhile;
+
+            AstValor labelFin;
+            labelFin.s = finWhile;
+
+            crearInstr(generador, INSTR_LABEL, (AstValor){0}, (AstValor){0}, (AstValor){0}, labelInicio);
             char* cond = generarExpr(generador, n->hi);
-            crearInstr(generador, INSTR_IF_FALSE, cond, NULL, finWhile, NULL);
+
+            AstValor condValor;
+            condValor.s = cond;
+            condValor.tipoDef = BOOL;
+
+            crearInstr(generador, INSTR_WHILE, condValor, (AstValor){0}, labelFin, (AstValor){0});
             generarSentencia(generador, n->hd);
-            crearInstr(generador, INSTR_GOTO, NULL, NULL, comienzoWhile, NULL);
-            crearInstr(generador, INSTR_LABEL, NULL, NULL, NULL, finWhile);
+            crearInstr(generador, INSTR_GOTO, (AstValor){0}, (AstValor){0}, labelInicio, (AstValor){0});
+            crearInstr(generador, INSTR_LABEL, (AstValor){0}, (AstValor){0}, (AstValor){0}, labelFin);
 
             free(comienzoWhile);
             free(finWhile);
@@ -126,10 +152,17 @@ static void generarSentencia(CodigoIntermedio* generador, Nodo* n) {
         case AST_RETURN: {
             if (n->hi) {
                 char* valor = generarExpr(generador, n->hi);
-                crearInstr(generador, INSTR_RETURN, valor, NULL, NULL, NULL);
+                AstValor valAst;
+                valAst.s = valor;
+                if (n->v != NULL) {
+                    valAst.tipoDef = n->v->tipoDef;
+                } else {
+                    valAst.tipoDef = INT;
+                }
+                crearInstr(generador, INSTR_RETURN, valAst, (AstValor){0}, (AstValor){0}, (AstValor){0});
                 free(valor);
             } else {
-                crearInstr(generador, INSTR_RETURN, NULL, NULL, NULL, NULL);
+                crearInstr(generador, INSTR_RETURN, (AstValor){0}, (AstValor){0}, (AstValor){0}, (AstValor){0});
             }
             break;
         }
@@ -146,19 +179,21 @@ static char* generarExpr(CodigoIntermedio* generador, Nodo* n) {
     // Implementacion pendiente
 }
 
-
+// Crea un nuevo temporal (t0, t1, ..., tn)
 static char* nuevaTemp(CodigoIntermedio* generador) {
     char buffer[20];
     sprintf(buffer, "t%d", generador->tempCount++);
     return strdup(buffer);
 }
 
+// Crea un nuevo label (L0, L1, ..., Ln)
 static char* nuevoLabel(CodigoIntermedio* generador) {
     char buffer[20];
     sprintf(buffer, "L%d", generador->labelCount++);
     return strdup(buffer);
 }
 
+// Retorna el string del tipo que tiene la instruccion
 static const char* instrToStr(TipoInstr tipo) {
     switch (tipo) {
         case INSTR_ADD: return "ADD";
@@ -173,8 +208,8 @@ static const char* instrToStr(TipoInstr tipo) {
         case INSTR_OR:  return "OR";
         case INSTR_NOT: return "NOT";
         case INSTR_ASSIGN: return "ASSIGN";
-        case INSTR_IF_TRUE:  return "IF_TRUE";
-        case INSTR_IF_FALSE: return "IF_FALSE";
+        case INSTR_IF:    return "IF";
+        case INSTR_WHILE: return "WHILE";
         case INSTR_GOTO:     return "GOTO";
         case INSTR_LABEL:    return "LABEL";
         case INSTR_FUNC_BEGIN: return "FUNC_BEGIN";
@@ -185,36 +220,41 @@ static const char* instrToStr(TipoInstr tipo) {
         case INSTR_RETURN:   return "RETURN";
         case INSTR_VAR_GLOBAL: return "VAR_GLOBAL";
         case INSTR_VAR_LOCAL:  return "VAR_LOCAL";
-        default: return "NOP";
+        default: return "UNKNOWN";
     }
 }
 
-static void crearInstr(CodigoIntermedio* generador, TipoInstr tipo, const char* arg1, const char* arg2, const char* res, const char* label) {
+// Funcion auxiliar para crear una nueva instruccion
+static void crearInstr(CodigoIntermedio* generador, TipoInstr tipo, AstValor arg1, AstValor arg2, AstValor res, AstValor label) {
     Instr* instr = malloc(sizeof(Instr));
     instr->tipo = tipo;
 
-    if (arg1 != NULL) {
-        instr->arg1 = strdup(arg1);
+    instr->arg1 = arg1;
+    if (arg1.s != NULL) {
+        instr->arg1.s = strdup(arg1.s);
     } else {
-        instr->arg1 = NULL;
+        instr->arg1.s = NULL;
     }
 
-    if (arg2 != NULL) {
-        instr->arg2 = strdup(arg2);
+    instr->arg2 = arg2;
+    if (arg2.s != NULL) {
+        instr->arg2.s = strdup(arg2.s);
     } else {
-        instr->arg2 = NULL;
+        instr->arg2.s = NULL;
     }
 
-    if (res != NULL){
-        instr->res = strdup(res);
+    instr->res = res;
+    if (res.s != NULL) {
+        instr->res.s = strdup(res.s);
     } else {
-        instr->res = NULL;
+        instr->res.s = NULL;
     }
 
-    if (label != NULL) {
-        instr->label = strdup(label);
+    instr->label = label;
+    if (label.s != NULL) {
+        instr->label.s = strdup(label.s);
     } else {
-        instr->label = NULL;
+        instr->label.s = NULL;
     }
 
     instr->next = NULL;
@@ -224,6 +264,5 @@ static void crearInstr(CodigoIntermedio* generador, TipoInstr tipo, const char* 
     } else {
         generador->tail->next = instr;
     }
-
     generador->tail = instr;
 }

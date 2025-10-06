@@ -17,8 +17,8 @@ typedef enum {
     INSTR_OR,
     INSTR_NOT,
     INSTR_ASSIGN,
-    INSTR_IF_TRUE,
-    INSTR_IF_FALSE,
+    INSTR_IF,
+    INSTR_WHILE,
     INSTR_GOTO,
     INSTR_LABEL,
     INSTR_FUNC_BEGIN,
@@ -35,10 +35,10 @@ typedef enum {
 // Estructura para Instruccion
 typedef struct Instr {
     TipoInstr tipo;
-    char* arg1;
-    char* arg2;
-    char* res;
-    char* label;
+    AstValor arg1;
+    AstValor arg2;
+    AstValor res;
+    AstValor label;
     struct Instr* next;
 } Instr;
 
@@ -52,7 +52,6 @@ typedef struct {
 
 // Funciones del generador de codigo intermedio
 CodigoIntermedio* crearGenerador();
-void liberarGenerador(CodigoIntermedio* generador);
 void generarCodigoIntermedio(CodigoIntermedio* genenerador, Nodo* raiz);
 void imprimirCodigoIntermedio(CodigoIntermedio* genenerador);
 
