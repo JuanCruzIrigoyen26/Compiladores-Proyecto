@@ -3,6 +3,7 @@
 #include "bison.tab.h"
 #include "ts.h" 
 #include "analizador_semantico.h"
+#include "codigoIntermedio.h"
 
 extern Nodo* raiz;
 extern FILE *yyin;  
@@ -21,6 +22,9 @@ int main(int argc, char *argv[]) {
         imprimir_tabla();
         chequearSemantica(raiz);
         verificarMainFinal();
+        CodigoIntermedio* generador = crearGenerador();
+        generarCodigoIntermedio(generador, raiz);
+        imprimirCodigoIntermedio(generador);
     }
 
     if (yyin != stdin){
