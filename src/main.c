@@ -4,6 +4,7 @@
 #include "ts.h" 
 #include "analizador_semantico.h"
 #include "codigoIntermedio.h"
+#include "codigoObjeto.h"  
 
 extern Nodo* raiz;
 extern FILE *yyin;  
@@ -25,6 +26,9 @@ int main(int argc, char *argv[]) {
         CodigoIntermedio* generador = crearGenerador();
         generarCodigoIntermedio(generador, raiz);
         imprimirCodigoIntermedio(generador);
+        // Generar código objeto y mostrar en terminal
+        printf("\nCÓDIGO OBJETO:\n");
+        generarCodigoObjeto(generador, stdout);
     }
 
     if (yyin != stdin){
