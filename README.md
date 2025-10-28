@@ -12,3 +12,4 @@ Se han creado las siguientes ramas para probar las diferentes funcionalidades qu
 - scanner-parser (Rama de prueba del analizador léxico y sintáctico)
 - ast-ts (Rama de Prueba del árbol de sintaxis abstracta, tabla de símbolos y analizador semantico)
 - codigo_intermedio (Rama de prueba del codigo intermedio)
+- codigo_objeto (Rama de prueba del codigo objeto)
