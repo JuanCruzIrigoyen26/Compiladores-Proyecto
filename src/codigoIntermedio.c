@@ -8,6 +8,7 @@ static char* generarExpr(CodigoIntermedio* generador, Nodo* n);
 static char* nuevaTemp(CodigoIntermedio* generador);
 static char* nuevoLabel(CodigoIntermedio* generador);
 static void crearInstr(CodigoIntermedio* generador, TipoInstr tipo, AstValor arg1, AstValor arg2, AstValor res, AstValor label);
+static const char* instrToStr(TipoInstr tipo);
 
 // Crea el generador de codigo intermedio
 CodigoIntermedio* crearGenerador() {
@@ -30,117 +31,23 @@ void imprimirCodigoIntermedio(CodigoIntermedio* generador) {
     }
 
     printf("CÓDIGO INTERMEDIO:\n");
+    printf("%-12s %-12s %-12s %-12s %-12s\n", 
+           "OP", "ARG1", "ARG2", "RES", "LABEL");
 
     Instr* actual = generador->head;
     while (actual) {
-        switch (actual->tipo) {
-            case INSTR_ASSIGN:
-                printf("%s = %s\n", actual->res.s, actual->arg1.s);
-                break;
+        const char* op    = instrToStr(actual->tipo);
+        const char* arg1  = (actual->arg1.s != NULL) ? actual->arg1.s : "_";
+        const char* arg2  = (actual->arg2.s != NULL) ? actual->arg2.s : "_";
+        const char* res   = (actual->res.s  != NULL) ? actual->res.s  : "_";
+        const char* label = (actual->label.s != NULL) ? actual->label.s : "_";
 
-            case INSTR_ADD:
-                printf("%s = %s + %s\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_SUB:
-                printf("%s = %s - %s\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_MUL:
-                printf("%s = %s * %s\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_DIV:
-                printf("%s = %s / %s\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_MOD:
-                printf("%s = %s %% %s\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_EQ:
-                printf("%s = (%s == %s)\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_LT:
-                printf("%s = (%s < %s)\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_GT:
-                printf("%s = (%s > %s)\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_AND:
-                printf("%s = %s && %s\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_OR:
-                printf("%s = %s || %s\n", actual->res.s, actual->arg1.s, actual->arg2.s);
-                break;
-
-            case INSTR_NOT:
-                printf("%s = !%s\n", actual->res.s, actual->arg1.s);
-                break;
-
-            case INSTR_PARAM:
-                printf("param %s\n", actual->arg1.s);
-                break;
-
-            case INSTR_CALL:
-                printf("%s = call %s\n", actual->res.s, actual->arg1.s);
-                break;
-
-            case INSTR_LABEL:
-                printf("%s:\n", actual->label.s);
-                break;
-
-            case INSTR_GOTO:
-                printf("goto %s\n", actual->label.s);
-                break;
-
-            case INSTR_IF:
-                printf("if %s goto %s\n", actual->arg1.s, actual->label.s);
-                break;
-
-            case INSTR_RETURN:
-                if (actual->arg1.s)
-                    printf("return %s\n", actual->arg1.s);
-                else
-                    printf("return\n");
-                break;
-            case INSTR_WHILE:
-                printf("while %s goto %s\n", actual->arg1.s, actual->res.s); // arg1=condición, res=label de fin
-                break;
-
-            case INSTR_FUNC_BEGIN:
-                printf("func_begin %s\n", actual->res.s);
-                break;
-
-            case INSTR_FUNC_END:
-                printf("func_end %s\n", actual->res.s);
-                break;
-
-            case INSTR_RETVAL:
-                printf("retval %s\n", actual->arg1.s);
-                break;
-
-            case INSTR_VAR_GLOBAL:
-                printf("var_global %s\n", actual->res.s);
-                break;
-
-            case INSTR_VAR_LOCAL:
-                printf("var_local %s\n", actual->res.s);
-                break;
-
-            default:
-                printf("Instrucción desconocida (%d)\n", actual->tipo);
-                break;
-        }
+        printf("%-12s %-12s %-12s %-12s %-12s\n", op, arg1, arg2, res, label);
 
         actual = actual->next;
     }
 
-    printf("FIN DEL CÓDIGO INTERMEDIO\n");
+    printf("\n");
 }
 
 
@@ -433,7 +340,7 @@ static char* nuevoLabel(CodigoIntermedio* generador) {
     return strdup(buffer);
 }
 
-// Retorna el string del tipo que tiene la instruccion
+// Retorna el string del tipo que tiene la actual
 static const char* instrToStr(TipoInstr tipo) {
     switch (tipo) {
         case INSTR_ADD: return "ADD";
@@ -464,7 +371,7 @@ static const char* instrToStr(TipoInstr tipo) {
     }
 }
 
-// Funcion auxiliar para crear una nueva instruccion
+// Funcion auxiliar para crear una nueva actual
 static void crearInstr(CodigoIntermedio* generador, TipoInstr tipo, AstValor arg1, AstValor arg2, AstValor res, AstValor label) {
     Instr* instr = malloc(sizeof(Instr));
     instr->tipo = tipo;
