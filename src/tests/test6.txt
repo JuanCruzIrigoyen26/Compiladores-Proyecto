@@ -10,6 +10,7 @@ program {
 
     void main() {
         integer z = 10;
+        integer p = 10;
         x = cuadrado(z);
 
         if (x > 50) then {
@@ -19,7 +20,10 @@ program {
         }
 
         while (z > 0) {
-            z = z - 1;
+                while (p > 0){
+                z = z - 1;
+                p = p - 1;
+            }
         }
 
         return;

@@ -10,7 +10,7 @@ program {
         if (y == 1) then {
             print_int(y);
         } else {
-            return print_int(inc(y));
+            return;
         }
     }
 }
