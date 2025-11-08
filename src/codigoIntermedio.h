@@ -54,5 +54,5 @@ typedef struct {
 CodigoIntermedio* crearGenerador();
 void generarCodigoIntermedio(CodigoIntermedio* genenerador, Nodo* raiz);
 void imprimirCodigoIntermedio(CodigoIntermedio* genenerador);
-
+extern int offsetTemp;
 #endif

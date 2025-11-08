@@ -254,7 +254,8 @@ llamada_func:
         $1.linea = yylineno;
         AstValor v = (AstValor){0}; 
         v.linea = yylineno;
-        $$ = nodo_binario(AST_LLAMADA, v, nodo_hoja(AST_ID, $1), $3);
+        Simbolo* sim = buscarSimbolo($1.s);
+        $$ = nodo_binario(AST_LLAMADA, v, nodo_id_simbolo(sim->v), $3);
     }
 ;
 
@@ -263,9 +264,13 @@ asignacion:
       ID T_ASIGNACION expr
       { 
         $1.linea = yylineno;
+        Simbolo* sim = buscarSimbolo($1.s);
+        if (!sim) {
+          fprintf(stderr, "Error semántico en línea %d: Variable '%s' no declarada.\n", yylineno, $1.s);
+        }
         AstValor v = (AstValor){0}; 
         v.linea = yylineno;
-        $$ = nodo_binario(AST_ASIGNACION, v, nodo_hoja(AST_ID, $1), $3);
+        $$ = nodo_binario(AST_ASIGNACION, v, nodo_id_simbolo(sim->v), $3);
       }
 ;
 
@@ -340,7 +345,14 @@ expr:
 
 /* Valor de variable */
 valor:
-      ID { $1.linea = yylineno; $$ = nodo_hoja(AST_ID, $1); }
+      ID { 
+        $1.linea = yylineno; 
+        Simbolo* sim = buscarSimbolo($1.s);
+        if (!sim) {
+          fprintf(stderr, "Error semántico en línea %d: Variable '%s' no declarada.\n", yylineno, $1.s);
+        }
+        $$ = nodo_id_simbolo(sim->v); 
+      }
     | ENTERO { $1.tipoDef = INT; $1.linea = yylineno; $$ = nodo_hoja(AST_INT, $1); }
     | T_TRUE { $1.tipoDef = BOOL;  $1.linea = yylineno; $$ = nodo_hoja(AST_BOOL, $1); }
     | T_FALSE { $1.tipoDef = BOOL; $1.linea = yylineno; $$ = nodo_hoja(AST_BOOL, $1); }

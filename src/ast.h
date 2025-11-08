@@ -57,7 +57,9 @@ typedef struct {
     TipoOp op;       // Operador si es nodo de operación
     int flag;        // Marca si la variable fue inicializada
     int esFuncion;   // Marca si es funcion o variable
+    int esParametro; // Marca si es parametro
     int linea;       // Línea donde aparece el token
+    int offset;      // Variable o temporal local en la pila
 } AstValor;
 
 // Nodo del AST
@@ -75,5 +77,6 @@ Nodo* nodo_hoja(AstTipo t, AstValor v); // Crea un nodo hoja
 Nodo* nodo_binario(AstTipo t, AstValor v, Nodo* hi, Nodo* hd); // Crea un nodo binario
 Nodo* nodo_ternario(AstTipo t, AstValor v, Nodo* hi, Nodo* hd, Nodo* extra); // Crea un nodo ternario
 void imprimir_ast(Nodo* nodo, int nivel); // Muestra el AST por pantalla
+Nodo* nodo_id_simbolo(AstValor *v);
 
 #endif

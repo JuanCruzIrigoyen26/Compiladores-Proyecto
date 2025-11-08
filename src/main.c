@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "ast.h"
 #include "bison.tab.h"
 #include "ts.h" 
@@ -26,9 +27,16 @@ int main(int argc, char *argv[]) {
         CodigoIntermedio* generador = crearGenerador();
         generarCodigoIntermedio(generador, raiz);
         imprimirCodigoIntermedio(generador);
-        // Generar código objeto y mostrar en terminal
-        printf("\nCÓDIGO OBJETO:\n");
-        generarCodigoObjeto(generador, stdout);
+        printf("\nGenerando archivo salida.txt...\n");
+        FILE* out = fopen("salida.txt", "w");
+        if (!out) {
+            perror("Error creando salida.txt");
+            exit(1);
+        }
+        generarCodigoObjeto(generador, out);
+        fclose(out);
+        printf("Código objeto guardado en salida.txt\n");
+
     }
 
     if (yyin != stdin){

@@ -5,6 +5,7 @@
 
 static Nivel *pila = NULL;
 static Nivel *pilaHistorica = NULL;
+static int contadorParams = 0;
 
 // Inicializa la pila vacía
 void inicializarTS() {
@@ -150,12 +151,20 @@ void imprimir_tabla() {
     }
 }
 
+void prepararParametros() {
+    contadorParams = 0;
+}
+
+
 // Funcion auxiliar para insertar los parametros en la tabla
 void insertarParametros(Nodo* params) {
     if (!params) return;
 
     if (params->tipo == AST_PARAM) {
-        insertarSimbolo(params->v);
+        Simbolo* s = insertarSimbolo(params->v);
+        s->v->offset = contadorParams;
+        s->v->esParametro = 1;
+        contadorParams++;
     }
     else if (params->tipo == AST_PARAMS) {
         insertarParametros(params->hi);

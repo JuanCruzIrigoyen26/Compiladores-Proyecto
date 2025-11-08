@@ -164,3 +164,12 @@ void imprimir_ast(Nodo* nodo, int nivel) {
     imprimir_ast(nodo->hd, nivel + 1);
     imprimir_ast(nodo->extra, nivel + 1); // para ternarios (if-else)
 }
+
+// Crea el nodo en el AST que representa un identificador
+Nodo* nodo_id_simbolo(AstValor *v) {
+    Nodo *n = malloc(sizeof(Nodo));
+    n->tipo = AST_ID;
+    n->hi = n->hd = n->extra = NULL;
+    n->v = v;
+    return n;
+}
