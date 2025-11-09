@@ -76,7 +76,7 @@ typedef struct Nodo {
 Nodo* nodo_hoja(AstTipo t, AstValor v); // Crea un nodo hoja
 Nodo* nodo_binario(AstTipo t, AstValor v, Nodo* hi, Nodo* hd); // Crea un nodo binario
 Nodo* nodo_ternario(AstTipo t, AstValor v, Nodo* hi, Nodo* hd, Nodo* extra); // Crea un nodo ternario
-void imprimir_ast(Nodo* nodo, int nivel); // Muestra el AST por pantalla
+void imprimir_ast(FILE *out, Nodo* nodo, int nivel); // Muestra el AST 
 Nodo* nodo_id_simbolo(AstValor *v);
 
 #endif

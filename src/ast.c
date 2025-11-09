@@ -93,76 +93,76 @@ const char* op_str(TipoOp op) {
     }
 }
 
-void imprimir_ast(Nodo* nodo, int nivel) {
+void imprimir_ast(FILE *out, Nodo* nodo, int nivel) {
     if (!nodo) return;
 
-    for (int i = 0; i < nivel; i++) printf("  ");
+    for (int i = 0; i < nivel; i++) fprintf(out, "  ");
 
     switch (nodo->tipo) {
         case AST_PROG:
-            printf("PROG\n");
+            fprintf(out, "PROG\n");
             break;
         case AST_INT:
-            printf("INT: %ld\n", nodo->v->i);
+            fprintf(out, "INT: %ld\n", nodo->v->i);
             break;
         case AST_BOOL:
-            printf("BOOL: %s\n", nodo->v->b ? "true" : "false");
+            fprintf(out, "BOOL: %s\n", nodo->v->b ? "true" : "false");
             break;
         case AST_ID:
-            printf("ID: %s\n", nodo->v->s ? nodo->v->s : "(null)");
+            fprintf(out, "ID: %s\n", nodo->v->s ? nodo->v->s : "(null)");
             break;
         case AST_OP:
-            printf("OP: %s\n", op_str(nodo->v->op));
+            fprintf(out, "OP: %s\n", op_str(nodo->v->op));
             break;
         case AST_DECL_VAR:
-            printf("DECL_VAR: %s\n", nodo->v->s ? nodo->v->s : "(null)");
+            fprintf(out, "DECL_VAR: %s\n", nodo->v->s ? nodo->v->s : "(null)");
             break;
         case AST_DECL_FUNC:
-            printf("DECL_FUNC: %s\n", nodo->v->s ? nodo->v->s : "(null)");
+            fprintf(out, "DECL_FUNC: %s\n", nodo->v->s ? nodo->v->s : "(null)");
             break;
         case AST_PARAM:
-            printf("PARAM: %s\n", nodo->v->s ? nodo->v->s : "(null)");
+            fprintf(out, "PARAM: %s\n", nodo->v->s ? nodo->v->s : "(null)");
             break;
         case AST_PARAMS:
-            printf("PARAMS\n");
+            fprintf(out, "PARAMS\n");
             break;
         case AST_BLOQUE:
-            printf("BLOQUE\n");
+            fprintf(out, "BLOQUE\n");
             break;
         case AST_DECLS:
-            printf("DECLS\n");
+            fprintf(out, "DECLS\n");
             break;
         case AST_STMTS:
-            printf("STMTS\n");
+            fprintf(out, "STMTS\n");
             break;
         case AST_SEQ_EXPR:
-            printf("SEQ_EXPR\n");
+            fprintf(out, "SEQ_EXPR\n");
             break;
         case AST_ASIGNACION:
-            printf("ASIGNACION\n");
+            fprintf(out, "ASIGNACION\n");
             break;
         case AST_IF:
-            printf("IF\n");
+            fprintf(out, "IF\n");
             break;
         case AST_WHILE:
-            printf("WHILE\n");
+            fprintf(out, "WHILE\n");
             break;
         case AST_RETURN:
-            printf("RETURN\n");
+            fprintf(out, "RETURN\n");
             break;
         case AST_LLAMADA:
             if (nodo->hi && nodo->hi->tipo == AST_ID)
-                printf("LLAMADA_FUNC: %s\n", nodo->hi->v->s);
+                fprintf(out, "LLAMADA_FUNC: %s\n", nodo->hi->v->s);
             else
-                printf("LLAMADA_FUNC: (null)\n");
+                fprintf(out, "LLAMADA_FUNC: (null)\n");
             break;
         default:
-            printf("Nodo desconocido\n");
+            fprintf(out, "Nodo desconocido\n");
         }
 
-    imprimir_ast(nodo->hi, nivel + 1);
-    imprimir_ast(nodo->hd, nivel + 1);
-    imprimir_ast(nodo->extra, nivel + 1); // para ternarios (if-else)
+    imprimir_ast(out, nodo->hi, nivel + 1);
+    imprimir_ast(out, nodo->hd, nivel + 1);
+    imprimir_ast(out, nodo->extra, nivel + 1); // para ternarios (if-else)
 }
 
 // Crea el nodo en el AST que representa un identificador

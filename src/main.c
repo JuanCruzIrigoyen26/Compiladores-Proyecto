@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
 #include "ast.h"
 #include "bison.tab.h"
 #include "ts.h" 
@@ -8,40 +10,159 @@
 #include "codigoObjeto.h"  
 
 extern Nodo* raiz;
-extern FILE *yyin;  
+extern FILE *yyin;
+extern int yylex(void);
+extern char* yytext;
+extern int yylineno;  
+
+typedef enum { 
+    ETAPA_SCAN, 
+    ETAPA_PARSE, 
+    ETAPA_SEM, 
+    ETAPA_CODINTER, 
+    ETAPA_ASSEMBLY,
+    ETAPA_OUT
+} Etapa;
+
+bool validarArchivoEntrada(const char* nombre) {
+    // No puede empezar con '-'
+    if (nombre[0] == '-') {
+        fprintf(stderr, "Error: el nombre del archivo no puede comenzar con '-'\n");
+        return false;
+    }
+
+    // Debe terminar con .ctds
+    const char* ext = strrchr(nombre, '.');
+    if (!ext || strcmp(ext, ".ctds") != 0) {
+        fprintf(stderr, "Error: el archivo debe tener extensión .ctds\n");
+        return false;
+    }
+
+    return true;
+}
+
+void generarNombreSalida(const char *entrada, const char *ext, char *salida) {
+    strcpy(salida, entrada);
+    char *punto = strrchr(salida, '.');
+    if (punto && strcmp(punto, ".ctds") == 0)
+        *punto = '\0';
+    strcat(salida, ext);
+}
+
 
 int main(int argc, char *argv[]) {
-    if (argc > 1)
-        yyin = fopen(argv[1],"r");
-    else
-        yyin = stdin;
+    char* archivoEntrada = NULL;
+    char* archivoSalida = NULL;
+    Etapa etapa = ETAPA_OUT; // por defecto genera .out
 
-    inicializarTS(); // inicializa la tabla de símbolos
-
-    if (yyparse() == 0) {
-        printf("\nÁrbol de sintaxis abstracta (AST):\n");
-        imprimir_ast(raiz, 0);
-        imprimir_tabla();
-        chequearSemantica(raiz);
-        verificarMainFinal();
-        CodigoIntermedio* generador = crearGenerador();
-        generarCodigoIntermedio(generador, raiz);
-        imprimirCodigoIntermedio(generador);
-        printf("\nGenerando archivo salida.txt...\n");
-        FILE* out = fopen("salida.txt", "w");
-        if (!out) {
-            perror("Error creando salida.txt");
-            exit(1);
+    //determiar etapa
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-target") == 0 && i + 1 < argc) {
+            i++;
+            if (strcmp(argv[i], "scan") == 0)
+                etapa = ETAPA_SCAN;
+            else if (strcmp(argv[i], "parse") == 0)
+                etapa = ETAPA_PARSE;
+            else if (strcmp(argv[i], "sem") == 0)
+                etapa = ETAPA_SEM;
+            else if (strcmp(argv[i], "codinter") == 0)
+                etapa = ETAPA_CODINTER;
+            else if (strcmp(argv[i], "assembly") == 0)
+                etapa = ETAPA_ASSEMBLY;
+            else {
+                fprintf(stderr, "Error: etapa '%s' desconocida.\n", argv[i]);
+                return 1;
+            }
+        } 
+        else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
+            archivoSalida = argv[++i];
+        } 
+        else {
+            archivoEntrada = argv[i];
         }
-        generarCodigoObjeto(generador, out);
-        fclose(out);
-        printf("Código objeto guardado en salida.txt\n");
-
     }
 
-    if (yyin != stdin){
+    //validar archivo de entrada
+    if (!archivoEntrada) {
+        fprintf(stderr, "Error: no se indicó archivo de entrada.\n");
+        return 1;
+    }
+
+    if (!validarArchivoEntrada(archivoEntrada))
+        return 1;
+
+    yyin = fopen(archivoEntrada, "r");
+    if (!yyin) {
+        perror("Error al abrir el archivo de entrada");
+        return 1;
+    }
+
+    //determinar nombre de salida
+    char nombreSalidaAuto[256];
+    if (!archivoSalida) {
+        switch (etapa) {
+            case ETAPA_SCAN: generarNombreSalida(archivoEntrada, ".lex", nombreSalidaAuto); break;
+            case ETAPA_PARSE: generarNombreSalida(archivoEntrada, ".sint", nombreSalidaAuto); break;
+            case ETAPA_SEM: generarNombreSalida(archivoEntrada, ".sem", nombreSalidaAuto); break;
+            case ETAPA_CODINTER: generarNombreSalida(archivoEntrada, ".ci", nombreSalidaAuto); break;
+            case ETAPA_ASSEMBLY: generarNombreSalida(archivoEntrada, ".ass", nombreSalidaAuto); break;
+            case ETAPA_OUT: generarNombreSalida(archivoEntrada, ".out", nombreSalidaAuto); break;
+        }
+        archivoSalida = nombreSalidaAuto;
+    }
+
+    FILE* out = fopen(archivoSalida, "w");
+    if (!out) {
+        perror("Error al crear archivo de salida");
         fclose(yyin);
+        return 1;
     }
 
+    //ejecucion segun la etapa
+    switch (etapa) {
+        case ETAPA_SCAN: {
+            printf("Etapa: SCAN → generando tokens en %s\n", archivoSalida);
+            int token;
+            while ((token = yylex()) != 0) {
+                fprintf(out, "TOKEN: %-3d | Texto: %-15s | Línea: %d\n",
+                        token, yytext, yylineno);
+            }
+            break;
+        }
+
+        case ETAPA_PARSE: {
+            printf("Etapa: PARSE → generando árbol sintáctico en %s\n", archivoSalida);
+            // Llamada al parser
+            inicializarTS();
+            if (yyparse() == 0) {   // si parseó correctamente
+                imprimir_ast(out, raiz, 0);  // imprimir el AST en el archivo de salida
+            } else {
+                fprintf(stderr, "Error: fallo en el parseo.\n");
+            }
+            break;
+        }
+
+        case ETAPA_SEM:
+            printf("Etapa: SEM (no implementada todavía)\n");
+            break;
+
+        case ETAPA_CODINTER:
+            printf("Etapa: CODINTER (no implementada todavía)\n");
+            break;
+
+        case ETAPA_ASSEMBLY:
+            printf("Etapa: ASSEMBLY (no implementada todavía)\n");
+            break;
+
+        case ETAPA_OUT:
+            printf("Etapa: COMPLETA (no implementada todavía)\n");
+            break;
+    }
+
+    fclose(out);
+    fclose(yyin);
+
+    printf("Archivo generado: %s ✅\n", archivoSalida);
     return 0;
+
 }
