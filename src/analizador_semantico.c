@@ -16,6 +16,7 @@ static int contarArgumentosAST(Nodo* argumentos);
 static void llenarTiposArgumentos(Nodo* argumentos, tipoDef* arrayArguments, int* indice, int max);
 
 FILE* archivoSalidaSem = NULL;
+int hayErrorSemantico = 0;
 
 static int lineaDe(Nodo* n) {
     if (!n) return 0;
@@ -28,8 +29,18 @@ static int lineaDe(Nodo* n) {
 
 // Funcion que muestra el error semantico encontrado
 void errorSemantico(int linea, const char* msg) {
-    fprintf(archivoSalidaSem, "Error semántico en línea %d: %s\n", linea, msg);
+    hayErrorSemantico = 1; // activa bandera
+
+    if (archivoSalidaSem) {
+        fprintf(stderr, "Error semántico detectado. Revise el archivo de salida.\n");
+
+
+        fprintf(archivoSalidaSem, "Error semántico en línea %d: %s\n", linea, msg);
+    } else {
+        fprintf(stderr, "Error semántico en línea %d: %s\n", linea, msg);
+    }
 }
+
 
 // Funcion principal 
 void chequearSemantica(Nodo* nodo) {

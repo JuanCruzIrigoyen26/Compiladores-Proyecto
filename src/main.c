@@ -15,6 +15,7 @@ extern int yylex(void);
 extern char* yytext;
 extern int yylineno;  
 extern FILE* archivoSalidaSem;
+extern int hayErrorSemantico;
 
 
 typedef enum { 
@@ -112,27 +113,25 @@ int main(int argc, char *argv[]) {
         }
         archivoSalida = nombreSalidaAuto;
     }
-
-    FILE* out = fopen(archivoSalida, "w");
-    if (!out) {
-        perror("Error al crear archivo de salida");
-        fclose(yyin);
-        return 1;
-    }
-
     //ejecucion segun la etapa
     switch (etapa) {
         case ETAPA_SCAN: {
+             FILE* out = fopen(archivoSalida, "w");
+            if (!out) { perror("Error al crear archivo de salida"); break; }
             printf("Etapa: SCAN → generando tokens en %s\n", archivoSalida);
             int token;
             while ((token = yylex()) != 0) {
                 fprintf(out, "TOKEN: %-3d | Texto: %-15s | Línea: %d\n",
                         token, yytext, yylineno);
             }
+            fclose(out);
+            printf("Archivo generado: %s \n", archivoSalida);
             break;
         }
 
         case ETAPA_PARSE: {
+            FILE* out = fopen(archivoSalida, "w");
+            if (!out) { perror("Error al crear archivo de salida"); break; }
             printf("Etapa: PARSE → generando árbol sintáctico en %s\n", archivoSalida);
             // Llamada al parser
             inicializarTS();
@@ -141,10 +140,15 @@ int main(int argc, char *argv[]) {
             } else {
                 fprintf(stderr, "Error: fallo en el parseo.\n");
             }
+            fclose(out);
+            printf("Archivo generado: %s \n", archivoSalida);
             break;
         }
 
         case ETAPA_SEM: {
+            FILE* out = fopen(archivoSalida, "w");
+            if (!out) { perror("Error al crear archivo de salida"); break; }
+
             printf("Etapa: SEM → generando análisis en %s\n", archivoSalida);
 
             inicializarTS();     // tabla vacía
@@ -165,13 +169,43 @@ int main(int argc, char *argv[]) {
             } else {
                 fprintf(out, "Error: Parsing falló. No se realizó análisis semántico.\n");
             }
+
+            fclose(out);
+            printf("Archivo generado: %s \n", archivoSalida);
+            break;
+        }
+        case ETAPA_CODINTER: {
+            printf("Etapa: CODINTER → generando código intermedio en %s\n", archivoSalida);
+
+            inicializarTS();
+            archivoSalidaSem = NULL;
+            hayErrorSemantico = 0;
+
+            if (yyparse() == 0) {
+                chequearSemantica(raiz);
+                verificarMainFinal();
+
+                if (hayErrorSemantico) {
+                    fprintf(stderr, "Se detectaron errores semánticos. No se generará el código intermedio.\n");
+                }else{
+                    FILE* out = fopen(archivoSalida, "w");
+                    if (!out) {
+                        perror("Error al crear archivo de salida");
+                        break;
+                    }
+                    CodigoIntermedio* gen = crearGenerador();
+                    generarCodigoIntermedio(gen, raiz);
+                    imprimirCodigoIntermedio(out, gen); 
+                    fclose(out);
+                    printf("Código intermedio generado correctamente: %s\n", archivoSalida);
+                }
+
+            } else {
+                fprintf(stderr, "Error: Parsing falló. No se generó código intermedio.\n");
+            }
             break;
         }
 
-
-        case ETAPA_CODINTER:
-            printf("Etapa: CODINTER (no implementada todavía)\n");
-            break;
 
         case ETAPA_ASSEMBLY:
             printf("Etapa: ASSEMBLY (no implementada todavía)\n");
@@ -181,11 +215,6 @@ int main(int argc, char *argv[]) {
             printf("Etapa: COMPLETA (no implementada todavía)\n");
             break;
     }
-
-    fclose(out);
     fclose(yyin);
-
-    printf("Archivo generado: %s ✅\n", archivoSalida);
     return 0;
-
 }

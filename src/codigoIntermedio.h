@@ -52,7 +52,7 @@ typedef struct {
 
 // Funciones del generador de codigo intermedio
 CodigoIntermedio* crearGenerador();
-void generarCodigoIntermedio(CodigoIntermedio* genenerador, Nodo* raiz);
-void imprimirCodigoIntermedio(CodigoIntermedio* genenerador);
+void generarCodigoIntermedio(CodigoIntermedio* generador, Nodo* raiz);
+void imprimirCodigoIntermedio(FILE* out, CodigoIntermedio* generador);
 extern int offsetTemp;
 #endif

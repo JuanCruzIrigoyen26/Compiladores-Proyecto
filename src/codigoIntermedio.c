@@ -33,14 +33,13 @@ void generarCodigoIntermedio(CodigoIntermedio* generador, Nodo* raiz) {
 }
 
 // Imprime en pantalla el codigo de tres direcciones (codigo intermedio)
-void imprimirCodigoIntermedio(CodigoIntermedio* generador) {
+void imprimirCodigoIntermedio(FILE* out, CodigoIntermedio* generador) {
     if (!generador || !generador->head) {
-        printf("No hay código intermedio generado.\n");
+        fprintf(out, "No hay código intermedio generado.\n");
         return;
     }
 
-    printf("CÓDIGO INTERMEDIO:\n");
-    printf("%-12s %-12s %-12s %-12s %-12s\n", 
+    fprintf(out, "%-12s %-12s %-12s %-12s %-12s\n", 
            "OP", "ARG1", "ARG2", "RES", "LABEL");
 
     Instr* actual = generador->head;
@@ -51,11 +50,11 @@ void imprimirCodigoIntermedio(CodigoIntermedio* generador) {
         const char* res   = (actual->res.s  != NULL) ? actual->res.s  : "_";
         const char* label = (actual->label.s != NULL) ? actual->label.s : "_";
 
-        printf("%-12s %-12s %-12s %-12s %-12s\n", op, arg1, arg2, res, label);
+        fprintf(out, "%-12s %-12s %-12s %-12s %-12s\n", op, arg1, arg2, res, label);
         actual = actual->next;
     }
 
-    printf("\n");
+    fprintf(out, "\n");
 }
 
 // Genera el codigo intermedio para funciones/metodos

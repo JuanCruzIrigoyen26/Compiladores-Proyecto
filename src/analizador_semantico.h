@@ -5,6 +5,8 @@
 #include "ts.h"
 
 extern FILE* archivoSalidaSem;
+extern int hayErrorSemantico;
+
 
 void chequearSemantica(Nodo* nodo);
 void verificarMainFinal();
