@@ -56,100 +56,64 @@ Simbolo* insertarSimbolo(AstValor *valor) {
 
 // Busca un símbolo desde el nivel actual hacia arriba
 Simbolo* buscarSimbolo(char *nombre) {
-    Nivel *n = pila;
-    while (n) {
-        Simbolo *simbolo = n->tabla;
-        while (simbolo) {
-            if (strcmp(simbolo->v->s, nombre) == 0){
-                return simbolo;
+    for (Nivel *n = pila; n; n = n->sig) {
+        for (Simbolo *s = n->tabla; s; s = s->sig) {
+            if (s->v->s && strcmp(s->v->s, nombre) == 0) {
+                return s;
             }
-            simbolo = simbolo->sig;
         }
-        n = n->sig;
     }
-    Nivel *nc = pilaHistorica;
-    while (nc) {
-        Simbolo *simbolo = nc->tabla;
-        while (simbolo) {
-            if (strcmp(simbolo->v->s, nombre) == 0)
-                return simbolo;
-            simbolo = simbolo->sig;
-        }
-        nc = nc->sig;
-    }
-    return NULL;
+    return NULL; // no mirar pilaHistorica
 }
+
 
 // Imprime todas las tablas
-void imprimir_tabla() {
-    printf("Tabla de Simbolos (TS):\n");
-
-    int nivelActivo = 0;
-    Nivel *aux = pila;
-    while (aux) {
-        if (aux->tabla)
-            printf("Nivel activo %d:\n", nivelActivo);
-
-        Simbolo *simbolo = aux->tabla;
-        while (simbolo) {
-            if (simbolo->v->esFuncion) {
-                if (simbolo->v->tipoDef == INT)
-                    printf("  %s (función, int)\n", simbolo->v->s);
-                else if (simbolo->v->tipoDef == BOOL)
-                    printf("  %s (función, bool)\n", simbolo->v->s);
-                else if (simbolo->v->tipoDef == VOID)
-                    printf("  %s (función, void)\n", simbolo->v->s);
-                else
-                    printf("  %s (función, tipo desconocido)\n", simbolo->v->s);
+void imprimir_tabla(FILE *out) {
+    int idx = 0;
+    // 1) Activos (de pila, desde el actual hacia arriba)
+    for (Nivel *aux = pila; aux; aux = aux->sig) {
+        if (!aux->tabla) continue;                 // omitir vacíos
+        fprintf(out, "Nivel %d:\n", idx++);
+        for (Simbolo *s = aux->tabla; s; s = s->sig) {
+            if (s->v->esFuncion) {
+                const char *t = (s->v->tipoDef == INT ? "int" :
+                                 s->v->tipoDef == BOOL ? "bool" :
+                                 s->v->tipoDef == VOID ? "void" : "tipo desconocido");
+                fprintf(out, "  %s (función, %s)\n", s->v->s, t);
             } else {
-                if (simbolo->v->tipoDef == INT) {
-                    printf("  %s : int = %ld\n", simbolo->v->s, simbolo->v->i);
-                } else if (simbolo->v->tipoDef == BOOL) {
-                    printf("  %s : bool = %s\n", simbolo->v->s, simbolo->v->b ? "true" : "false");
-                } else {
-                    printf("  %s (tipo desconocido)\n", simbolo->v->s);
-                }
+                if (s->v->tipoDef == INT)
+                    fprintf(out, "  %s : int\n", s->v->s);
+                else if (s->v->tipoDef == BOOL)
+                    fprintf(out, "  %s : bool\n", s->v->s);
+                else
+                    fprintf(out, "  %s (tipo desconocido)\n", s->v->s);
             }
-            simbolo = simbolo->sig;
         }
-
-        aux = aux->sig;
-        nivelActivo++;
     }
 
-    int nivelCerrado = 0;
-    aux = pilaHistorica;
-    while (aux) {
-        if (aux->tabla)
-            printf("Nivel cerrado %d:\n", nivelCerrado);
-
-        Simbolo *simbolo = aux->tabla;
-        while (simbolo) {
-            if (simbolo->v->esFuncion) {
-                if (simbolo->v->tipoDef == INT)
-                    printf("  %s (función, int)\n", simbolo->v->s);
-                else if (simbolo->v->tipoDef == BOOL)
-                    printf("  %s (función, bool)\n", simbolo->v->s);
-                else if (simbolo->v->tipoDef == VOID)
-                    printf("  %s (función, void)\n", simbolo->v->s);
-                else
-                    printf("  %s (función, tipo desconocido)\n", simbolo->v->s);
+    // 2) Cerrados (históricos). Imprimimos en orden de cierre (como los guardaste)
+    for (Nivel *aux = pilaHistorica; aux; aux = aux->sig) {
+        if (!aux->tabla) continue;                 // omitir vacíos
+        fprintf(out, "Nivel %d:\n", idx++);
+        for (Simbolo *s = aux->tabla; s; s = s->sig) {
+            if (s->v->esFuncion) {
+                const char *t = (s->v->tipoDef == INT ? "int" :
+                                 s->v->tipoDef == BOOL ? "bool" :
+                                 s->v->tipoDef == VOID ? "void" : "tipo desconocido");
+                fprintf(out, "  %s (función, %s)\n", s->v->s, t);
             } else {
-                if (simbolo->v->tipoDef == INT){
-                    printf("  %s : int = %ld\n", simbolo->v->s, simbolo->v->i);
-                }else if (simbolo->v->tipoDef == BOOL) {
-                    printf("  %s : bool = %s\n", simbolo->v->s, simbolo->v->b ? "true" : "false");
-                }else{
-                    printf("  %s (tipo desconocido)\n", simbolo->v->s);
-                }
+                if (s->v->tipoDef == INT)
+                    fprintf(out, "  %s : int\n", s->v->s);
+                else if (s->v->tipoDef == BOOL)
+                    fprintf(out, "  %s : bool\n", s->v->s);
+                else
+                    fprintf(out, "  %s (tipo desconocido)\n", s->v->s);
             }
-            simbolo = simbolo->sig;
         }
-
-        aux = aux->sig;
-        nivelCerrado++;
     }
 }
+
+
 
 void prepararParametros() {
     contadorParams = 0;

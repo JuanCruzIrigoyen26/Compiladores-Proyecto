@@ -14,6 +14,8 @@ extern FILE *yyin;
 extern int yylex(void);
 extern char* yytext;
 extern int yylineno;  
+extern FILE* archivoSalidaSem;
+
 
 typedef enum { 
     ETAPA_SCAN, 
@@ -142,9 +144,30 @@ int main(int argc, char *argv[]) {
             break;
         }
 
-        case ETAPA_SEM:
-            printf("Etapa: SEM (no implementada todavía)\n");
+        case ETAPA_SEM: {
+            printf("Etapa: SEM → generando análisis en %s\n", archivoSalida);
+
+            inicializarTS();     // tabla vacía
+            archivoSalidaSem = out; // para que errorSemantico escriba en el archivo
+
+            if (yyparse() == 0) {
+                fprintf(out, "Árbol Sintáctico:\n");
+                imprimir_ast(out, raiz, 0);
+
+                fprintf(out, "\nComienzo de análisis semántico.\n");
+                chequearSemantica(raiz);
+                verificarMainFinal();
+
+                fprintf(out, "\nTabla de Símbolos (TS):\n");
+                imprimir_tabla(out);
+
+                fprintf(out, "\nAnálisis semántico finalizado.\n");
+            } else {
+                fprintf(out, "Error: Parsing falló. No se realizó análisis semántico.\n");
+            }
             break;
+        }
+
 
         case ETAPA_CODINTER:
             printf("Etapa: CODINTER (no implementada todavía)\n");

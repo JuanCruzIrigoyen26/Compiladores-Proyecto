@@ -4,6 +4,8 @@
 #include "ast.h"
 #include "ts.h"
 
+extern FILE* archivoSalidaSem;
+
 void chequearSemantica(Nodo* nodo);
 void verificarMainFinal();
 #endif

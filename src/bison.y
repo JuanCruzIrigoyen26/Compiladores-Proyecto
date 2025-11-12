@@ -113,6 +113,7 @@ decl:
 decl_func:
       perfil_func bloque_cuerpo
       {
+        $2->esBloqueDeFuncion = 1;
         $$ = nodo_ternario(AST_DECL_FUNC, *($1->v), $1->hi, $2, NULL);
       }
 ;
@@ -126,11 +127,7 @@ perfil_func:
           vFunc.tipoDef = $1->v->tipoDef;
           vFunc.esFuncion = 1;
           vFunc.linea = yylineno;
-          insertarSimbolo(&vFunc);
-          Nodo* n = nodo_ternario(AST_DECL_FUNC, vFunc, $4, NULL, NULL);
-          abrirNivel();
-          insertarParametros($4);
-          $$ = n;          
+          $$ = nodo_ternario(AST_DECL_FUNC, vFunc, $4, NULL, NULL);         
       }
 ;
 
@@ -143,7 +140,6 @@ decl_func_extern:
           vFunc.tipoDef = $1->v->tipoDef;
           vFunc.esFuncion = 1;
           vFunc.linea = yylineno;
-          insertarSimbolo(&vFunc);
           $$ = nodo_ternario(AST_DECL_FUNC, vFunc, $4, NULL, NULL);
       }
 ;
@@ -152,20 +148,7 @@ decl_func_extern:
 decl_var_global:
       tipo_decl ID T_ASIGNACION expr T_PUNTOC
       {
-          AstValor v = (AstValor){0};
-          v.s = $2.s;
-          v.tipoDef = $1->v->tipoDef;
-          v.linea = yylineno;
-          if ($4 && $4->tipo == AST_INT) {
-              v.i = $4->v->i;
-          } else if ($4 && $4->tipo == AST_BOOL) {
-              v.b = $4->v->b;
-          }
-          if (existeEnNivelActual(v.s)) {
-            fprintf(stderr, "Error semántico en línea %d: Identificador declarado dos veces en el mismo bloque\n", yylineno);
-          } else {
-            insertarSimbolo(&v);
-          }
+          AstValor v = { .s = $2.s, .tipoDef = $1->v->tipoDef, .linea = yylineno }; 
           $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
       }
 ;
@@ -179,11 +162,9 @@ parametros:
 
 /* Bloque normal (if, while) */
 bloque:
-      T_LA { abrirNivel(); } decls_sentencias T_LC
+      T_LA decls_sentencias T_LC
       {
-          Nodo* declsNodo = $3 ? nodo_binario(AST_DECLS, (AstValor){0}, $3, NULL) : NULL;
-          $$ = nodo_binario(AST_BLOQUE, (AstValor){0}, declsNodo, NULL);
-          cerrarNivel();
+        $$ = nodo_binario(AST_BLOQUE, (AstValor){0}, $2, NULL);
       }
 ;
 
@@ -191,9 +172,7 @@ bloque:
 bloque_cuerpo:
       T_LA decls_sentencias T_LC
       {
-          Nodo* declsNodo = $2 ? nodo_binario(AST_DECLS, (AstValor){0}, $2, NULL) : NULL;
-          $$ = nodo_binario(AST_BLOQUE, (AstValor){0}, declsNodo, NULL);
-          cerrarNivel();
+        $$ = nodo_binario(AST_BLOQUE, (AstValor){0}, $2, NULL);
       }
 ;
 
@@ -207,20 +186,7 @@ decls_sentencias:
 decl_or_sentencia:
       tipo ID T_ASIGNACION expr T_PUNTOC
       {
-          AstValor v = (AstValor){0};
-          v.s = $2.s;
-          v.tipoDef = $1->v->tipoDef;
-          v.linea = yylineno;
-          if ($4 && $4->tipo == AST_INT) {
-              v.i = $4->v->i;
-          } else if ($4 && $4->tipo == AST_BOOL) {
-              v.b = $4->v->b;
-          }
-          if (existeEnNivelActual(v.s)) {
-            fprintf(stderr, "Error semántico en línea %d: Identificador declarado dos veces en el mismo bloque\n", yylineno);
-          } else {
-            insertarSimbolo(&v);
-          }
+          AstValor v = { .s = $2.s, .tipoDef = $1->v->tipoDef, .linea = yylineno };
           $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
       }
     | sentencia { $$ = $1; }
@@ -251,11 +217,8 @@ sentencia:
 llamada_func:
     ID T_PA expresiones T_PC
     {
-        $1.linea = yylineno;
-        AstValor v = (AstValor){0}; 
-        v.linea = yylineno;
-        Simbolo* sim = buscarSimbolo($1.s);
-        $$ = nodo_binario(AST_LLAMADA, v, nodo_id_simbolo(sim->v), $3);
+        AstValor v={.linea=yylineno};
+         $$ = nodo_binario(AST_LLAMADA, v, nodo_hoja(AST_ID,$1), $3);
     }
 ;
 
@@ -263,14 +226,8 @@ llamada_func:
 asignacion:
       ID T_ASIGNACION expr
       { 
-        $1.linea = yylineno;
-        Simbolo* sim = buscarSimbolo($1.s);
-        if (!sim) {
-          fprintf(stderr, "Error semántico en línea %d: Variable '%s' no declarada.\n", yylineno, $1.s);
-        }
-        AstValor v = (AstValor){0}; 
-        v.linea = yylineno;
-        $$ = nodo_binario(AST_ASIGNACION, v, nodo_id_simbolo(sim->v), $3);
+        AstValor v={.linea=yylineno};
+        $$ = nodo_binario(AST_ASIGNACION, v, nodo_hoja(AST_ID,$1), $3);
       }
 ;
 
@@ -347,11 +304,7 @@ expr:
 valor:
       ID { 
         $1.linea = yylineno; 
-        Simbolo* sim = buscarSimbolo($1.s);
-        if (!sim) {
-          fprintf(stderr, "Error semántico en línea %d: Variable '%s' no declarada.\n", yylineno, $1.s);
-        }
-        $$ = nodo_id_simbolo(sim->v); 
+        $$ = nodo_hoja(AST_ID, $1); 
       }
     | ENTERO { $1.tipoDef = INT; $1.linea = yylineno; $$ = nodo_hoja(AST_INT, $1); }
     | T_TRUE { $1.tipoDef = BOOL;  $1.linea = yylineno; $$ = nodo_hoja(AST_BOOL, $1); }

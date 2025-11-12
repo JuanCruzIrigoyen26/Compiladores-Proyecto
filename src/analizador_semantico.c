@@ -15,6 +15,8 @@ static void llenarTiposParametros(Nodo* params, tipoDef* arrayTipos, int* indice
 static int contarArgumentosAST(Nodo* argumentos);
 static void llenarTiposArgumentos(Nodo* argumentos, tipoDef* arrayArguments, int* indice, int max);
 
+FILE* archivoSalidaSem = NULL;
+
 static int lineaDe(Nodo* n) {
     if (!n) return 0;
     if (n->v && n->v->linea > 0) return n->v->linea;
@@ -26,7 +28,7 @@ static int lineaDe(Nodo* n) {
 
 // Funcion que muestra el error semantico encontrado
 void errorSemantico(int linea, const char* msg) {
-    fprintf(stderr, "Error semántico en línea %d: %s\n", linea, msg);
+    fprintf(archivoSalidaSem, "Error semántico en línea %d: %s\n", linea, msg);
 }
 
 // Funcion principal 
@@ -95,6 +97,16 @@ static void chequearOp(Nodo* nodo) {
 // Chequeo de bloque
 static void chequearBloque(Nodo* bloque) {
     if (!bloque) return;
+
+    // si es cuerpo de función → ya abrimos nivel antes
+    if (bloque->esBloqueDeFuncion) {
+        if (bloque->hi) chequearNodo(bloque->hi);
+        if (bloque->hd) chequearNodo(bloque->hd);
+        if (bloque->extra) chequearNodo(bloque->extra);
+        return;
+    }
+
+    // Si es bloque normal → if / while
     abrirNivel();
     if (bloque->hi) chequearNodo(bloque->hi);
     if (bloque->hd) chequearNodo(bloque->hd);
@@ -131,14 +143,25 @@ static void chequearNodo(Nodo* nodo) {
             break;
         }
         case AST_DECL_VAR: {
+            
             if (nodo->hi) chequearNodo(nodo->hi);
             if (nodo->hd) chequearNodo(nodo->hd);
+
+            
+            if (existeEnNivelActual(nodo->v->s)) {
+                errorSemantico(nodo->v->linea, "Identificador declarado dos veces en el mismo bloque");
+            } else {
+                insertarSimbolo(nodo->v); 
+            }
+
+            
             if (nodo->hd && nodo->hd->v->tipoDef != nodo->v->tipoDef) {
                 errorSemantico(nodo->v->linea, "Tipo de inicialización no coincide con el de la variable");
             }
             break;
         }
         case AST_DECL_FUNC: {
+            insertarSimbolo(nodo->v);
             chequearMainDecl(nodo);
             int tipoAnterior = tipoFuncionActual;
             tipoFuncionActual = nodo->v->tipoDef;

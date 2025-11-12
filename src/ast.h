@@ -66,6 +66,7 @@ typedef struct {
 typedef struct Nodo {
     AstTipo tipo;    // Tipo de nodo (AST_INT, AST_OP, etc.)
     AstValor *v;     // Valor asociado al nodo
+    int esBloqueDeFuncion;
     struct Nodo *hi; // Hijo izquierdo (para binarios o secuencias)
     struct Nodo *hd; // Hijo derecho
     struct Nodo *extra; 

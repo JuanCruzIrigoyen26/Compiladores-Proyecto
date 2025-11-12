@@ -24,7 +24,7 @@ Nodo* nodo_hoja(AstTipo t, AstValor v) {
     if ((t == AST_ID) && v.s) {
         n->v->s = strdup(v.s);
     }
-
+    n->esBloqueDeFuncion = 0;
     return n;
 }
 
@@ -47,7 +47,7 @@ Nodo* nodo_binario(AstTipo t, AstValor v, Nodo* hi, Nodo* hd) {
         exit(1);
     }
     *n->v = v;
-
+    n->esBloqueDeFuncion = 0;
     return n;
 }
 
@@ -70,7 +70,7 @@ Nodo* nodo_ternario(AstTipo t, AstValor v, Nodo* hi, Nodo* hd, Nodo* extra) {
         exit(1);
     }
     *n->v = v;
-
+    n->esBloqueDeFuncion = 0;
     return n;
 }
 
@@ -165,11 +165,4 @@ void imprimir_ast(FILE *out, Nodo* nodo, int nivel) {
     imprimir_ast(out, nodo->extra, nivel + 1); // para ternarios (if-else)
 }
 
-// Crea el nodo en el AST que representa un identificador
-Nodo* nodo_id_simbolo(AstValor *v) {
-    Nodo *n = malloc(sizeof(Nodo));
-    n->tipo = AST_ID;
-    n->hi = n->hd = n->extra = NULL;
-    n->v = v;
-    return n;
-}
+
