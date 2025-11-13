@@ -187,13 +187,11 @@ void generarCodigoObjeto(CodigoIntermedio* generador, FILE* out) {
 
     Instr* actual = generador->head;
     int funcReturn = 0;
-    int esLabel = 0;
     while (actual) {
         switch (actual->tipo) {
             case INSTR_FUNC_BEGIN:
                 localCount = 0;
                 funcReturn = 0;
-                esLabel = 0;
                 paramIndex = 0;
                 Instr* aux = actual->next;
                 while (aux && aux->tipo != INSTR_FUNC_END) {
@@ -230,7 +228,6 @@ void generarCodigoObjeto(CodigoIntermedio* generador, FILE* out) {
             case INSTR_OR:
             case INSTR_NOT:
                 traducirOperacion(actual, out);
-                esLabel = 0;
                 break;
             case INSTR_PARAM: {
                 const char* reg = regArg(paramIndex);
@@ -242,7 +239,6 @@ void generarCodigoObjeto(CodigoIntermedio* generador, FILE* out) {
                     paramStackCount++;
                 }
                 paramIndex++;
-                esLabel = 0;
                 break;
             }
             case INSTR_CALL:
@@ -255,7 +251,6 @@ void generarCodigoObjeto(CodigoIntermedio* generador, FILE* out) {
                 if (actual->res.s) {
                     guardarDesdeRAX(actual->res.s, out);
                 }
-                esLabel = 0;
                 break;
             case INSTR_RETURN:
                 if (actual->arg1.s) {
@@ -264,16 +259,13 @@ void generarCodigoObjeto(CodigoIntermedio* generador, FILE* out) {
                 fprintf(out, "    leave\n");
                 fprintf(out, "    ret\n"); 
                 funcReturn = 1;
-                esLabel = 0;
                 break;
             case INSTR_LABEL:
                 fprintf(out, "%s:\n", actual->label.s); 
-                esLabel = 1;
                 funcReturn = 0;
                 break;
             case INSTR_GOTO:
                 fprintf(out, "    jmp %s\n", actual->label.s);
-                esLabel = 0;
                 break;
             case INSTR_IF:
                 if (actual->arg1.s) {
@@ -288,7 +280,6 @@ void generarCodigoObjeto(CodigoIntermedio* generador, FILE* out) {
                     fprintf(out, "    cmp $0, %%rax\n");
                 }
                 fprintf(out, "    je %s\n", actual->label.s); 
-                esLabel = 0;
                 break;
             case INSTR_WHILE:
                  if (actual->arg1.s) {
@@ -303,8 +294,7 @@ void generarCodigoObjeto(CodigoIntermedio* generador, FILE* out) {
                 }
                 fprintf(out, "    je %s\n", actual->label.s); 
                 break;
-            case INSTR_VAR_LOCAL:
-            esLabel = 0;
+            case INSTR_VAR_LOCAL:;
             break;
             default:
                 fprintf(out, "    # Instrucción no implementada (%d)\n", actual->tipo);
