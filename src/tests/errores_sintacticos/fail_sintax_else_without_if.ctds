@@ -1,0 +1,7 @@
+program {
+    void main() {
+        else { // ERROR: 'else' sin un 'if' que lo preceda
+            integer x = 1;
+        }
+    }
+}

@@ -1,0 +1,5 @@
+program {
+    void main() {
+        integer x = 5 + ; // ERROR: Falta operando derecho
+    }
+}

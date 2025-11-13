@@ -1,0 +1,25 @@
+program {
+    void print_int(integer i) extern;
+
+    integer test_param(integer p) {
+        p = 10; // 1. Asignación a parámetro (permitido)
+        return p;
+    }
+
+    void main() {
+        // 2. Prueba de inicialización por defecto
+        integer x_def;
+        bool b_def;
+
+        print_int(x_def); // DEBE IMPRIMIR 0
+
+        if (!b_def) then { // !false == true
+            print_int(1); // DEBE IMPRIMIR 1
+        }
+
+        // 3. Prueba de ignorar valor de retorno
+        test_param(5); // Se llama, pero el '10' retornado se ignora.
+
+        print_int(42); 
+    }
+}

@@ -1,0 +1,18 @@
+program {
+    integer x = 1; // Ámbito Global
+    void print_int(integer i) extern;
+
+    void main() {
+        print_int(x); // 1. Lee del ámbito global
+
+        integer x = 2; // Ámbito Local (main). Oculta la global.
+        print_int(x); // 2. Lee del ámbito local
+
+        if (true) then {
+            integer x = 3; // Ámbito de Bloque (if). Oculta la local.
+            print_int(x); // 3. Lee del ámbito del bloque
+        }
+
+        print_int(x); // 4. Lee del ámbito local de nuevo
+    }
+}

@@ -1,7 +1,6 @@
 program {
     integer x = 5;
     bool flag = true;
-
     integer cuadrado(integer n) {
         return n * n;
     }

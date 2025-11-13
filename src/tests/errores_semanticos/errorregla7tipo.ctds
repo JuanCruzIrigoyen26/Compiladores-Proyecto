@@ -1,0 +1,5 @@
+program {
+    integer f() {
+        return true; // ERROR: La función es 'integer' pero retorna 'bool'
+    }
+}

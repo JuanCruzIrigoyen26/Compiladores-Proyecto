@@ -1,0 +1,7 @@
+program {
+    void main() {
+        if (true) { // ERROR: Falta la palabra clave 'then'
+            integer x = 1;
+        }
+    }
+}

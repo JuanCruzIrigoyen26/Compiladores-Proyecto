@@ -1,0 +1,21 @@
+program {
+    void print_int(integer i) extern;
+
+    void main() {
+        integer a = 10 % 3;   // Prueba de Módulo.      Resultado: 1
+        integer b = 10 / 4;   // Prueba de Div Entera. Resultado: 2
+        integer c = -a;       // Prueba de Menos Unario. Resultado: -1
+
+        // Prueba de Precedencia: 5 + (2 * 10) = 25
+        integer d = 5 + 2 * 10;
+
+        // Prueba de Paréntesis: (5 + 2) * 10 = 70
+        integer e = (5 + 2) * 10;
+
+        print_int(a); // 1
+        print_int(b); // 2
+        print_int(c); // -1
+        print_int(d); // 25
+        print_int(e); // 70
+    }
+}
