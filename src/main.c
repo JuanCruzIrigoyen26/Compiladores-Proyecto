@@ -206,14 +206,72 @@ int main(int argc, char *argv[]) {
             break;
         }
 
+        case ETAPA_ASSEMBLY: {
+            printf("Etapa: ASSEMBLY → generando código ensamblador en %s\n", archivoSalida);
 
-        case ETAPA_ASSEMBLY:
-            printf("Etapa: ASSEMBLY (no implementada todavía)\n");
-            break;
+            inicializarTS();
+            archivoSalidaSem = NULL;
+            hayErrorSemantico = 0;
 
-        case ETAPA_OUT:
-            printf("Etapa: COMPLETA (no implementada todavía)\n");
+            if (yyparse() == 0) {
+                chequearSemantica(raiz);
+                verificarMainFinal();
+
+                if (hayErrorSemantico) {
+                    fprintf(stderr, "Se detectaron errores semánticos. No se generará el código ensamblador.\n");
+                } else {
+                    FILE* out = fopen(archivoSalida, "w");
+                    if (!out) {
+                        perror("Error al crear archivo de salida");
+                        break;
+                    }
+
+                    CodigoIntermedio* gen = crearGenerador();
+                    generarCodigoIntermedio(gen, raiz);
+
+                    // Generar código objeto (assembly)
+                    generarCodigoObjeto(gen, out);
+                    fclose(out);
+                    printf("Código ensamblador generado correctamente: %s\n", archivoSalida);
+                }
+            } else {
+                fprintf(stderr, "Error: Parsing falló. No se generó código ensamblador.\n");
+            }
             break;
+        }
+
+        case ETAPA_OUT: {
+            printf("Etapa: OUT → generando código objeto final en %s\n", archivoSalida);
+
+            inicializarTS();
+            archivoSalidaSem = NULL;
+            hayErrorSemantico = 0;
+
+            if (yyparse() == 0) {
+                chequearSemantica(raiz);
+                verificarMainFinal();
+
+                if (hayErrorSemantico) {
+                    fprintf(stderr, "Se detectaron errores semánticos. No se generará el código objeto.\n");
+                } else {
+                    FILE* out = fopen(archivoSalida, "w");
+                    if (!out) {
+                        perror("Error al crear archivo de salida");
+                        break;
+                    }
+
+                    CodigoIntermedio* gen = crearGenerador();
+                    generarCodigoIntermedio(gen, raiz);
+
+                    generarCodigoObjeto(gen, out);
+                    fclose(out);
+                    printf("Código objeto generado correctamente: %s\n", archivoSalida);
+                }
+            } else {
+                fprintf(stderr, "Error: Parsing falló. No se generó código objeto.\n");
+            }
+            break;
+        }
     }
     fclose(yyin);
     return 0;
