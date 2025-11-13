@@ -63,6 +63,7 @@ static void generarFuncion(CodigoIntermedio* generador, Nodo* n) {
     offsetLocal = 0;
     tipoFuncionActual = n->v ? n->v->tipoDef : VOID;
 
+    abrirNivel();
     prepararParametros();
     insertarParametros(n->hi);
 
@@ -72,6 +73,7 @@ static void generarFuncion(CodigoIntermedio* generador, Nodo* n) {
     generarSentencia(generador, n->hd);
 
     crearInstr(generador, INSTR_FUNC_END, (AstValor){0}, (AstValor){0}, nombre, (AstValor){0});
+    cerrarNivel();
     enFuncion = 0;
     tipoFuncionActual = VOID;
 }
@@ -87,6 +89,10 @@ static void generarDeclaracion(CodigoIntermedio* generador, Nodo* n, int esGloba
         crearInstr(generador, INSTR_VAR_GLOBAL, (AstValor){0}, (AstValor){0}, *v, (AstValor){0});
     } else {
         asignarOffset(v);
+        if (!sim) { 
+            insertarSimbolo(v);
+        }
+        
         AstValor valor = *v;
         valor.s = convertirReferencia(*v);
         crearInstr(generador, INSTR_VAR_LOCAL, (AstValor){0}, (AstValor){0}, valor, (AstValor){0});
@@ -108,6 +114,9 @@ static void generarSentencia(CodigoIntermedio* generador, Nodo* n) {
 
     switch (n->tipo) {
         case AST_DECL_FUNC:
+            if (n->v && n->v->esExtern) {
+                break;
+            }
             generarFuncion(generador, n);
             break;
 
@@ -118,7 +127,13 @@ static void generarSentencia(CodigoIntermedio* generador, Nodo* n) {
         case AST_ASIGNACION: {
             char* aux = generarExpr(generador, n->hd);
             AstValor valorAux = { .s = aux, .tipoDef = n->hi->v->tipoDef };
-            AstValor ladoIzq = *n->hi->v;
+            Simbolo* s = buscarSimbolo(n->hi->v->s);
+            if (!s || !s->v) {
+                fprintf(stderr, "Error fatal de CI: Símbolo '%s' no encontrado en asignación.\n", n->hi->v->s);
+                free(aux);
+                break; 
+            }
+            AstValor ladoIzq = *(s->v);
             char* ref = convertirReferencia(ladoIzq);
             ladoIzq.s = ref;
             crearInstr(generador, INSTR_ASSIGN, valorAux, (AstValor){0}, ladoIzq, (AstValor){0});
@@ -133,9 +148,20 @@ static void generarSentencia(CodigoIntermedio* generador, Nodo* n) {
 
         case AST_STMTS:
         case AST_DECLS:
-        case AST_BLOQUE:
             generarSentencia(generador, n->hi);
             generarSentencia(generador, n->hd);
+            break;
+
+        case AST_BLOQUE:
+            if (n->v && n->v->esBloqueDeFuncion) {
+                generarSentencia(generador, n->hi);
+                generarSentencia(generador, n->hd); 
+            } else {
+                abrirNivel();
+                generarSentencia(generador, n->hi); 
+                generarSentencia(generador, n->hd); 
+                cerrarNivel();
+            }
             break;
 
         case AST_IF: {
@@ -213,7 +239,11 @@ static char* generarExpr(CodigoIntermedio* generador, Nodo* n) {
         }
 
         case AST_ID: {
-            return convertirReferencia(*n->v);
+            Simbolo* s = buscarSimbolo(n->v->s);
+            if (s && s->v) {
+                return convertirReferencia(*(s->v)); 
+            }
+            return strdup(n->v->s);
         }
 
         case AST_OP: {

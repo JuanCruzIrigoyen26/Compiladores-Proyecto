@@ -113,7 +113,7 @@ decl:
 decl_func:
       perfil_func bloque_cuerpo
       {
-        $2->esBloqueDeFuncion = 1;
+        $2->v->esBloqueDeFuncion = 1;
         $$ = nodo_ternario(AST_DECL_FUNC, *($1->v), $1->hi, $2, NULL);
       }
 ;
@@ -127,6 +127,7 @@ perfil_func:
           vFunc.tipoDef = $1->v->tipoDef;
           vFunc.esFuncion = 1;
           vFunc.linea = yylineno;
+          vFunc.esExtern = 0;
           $$ = nodo_ternario(AST_DECL_FUNC, vFunc, $4, NULL, NULL);         
       }
 ;
@@ -140,6 +141,7 @@ decl_func_extern:
           vFunc.tipoDef = $1->v->tipoDef;
           vFunc.esFuncion = 1;
           vFunc.linea = yylineno;
+          vFunc.esExtern = 1;
           $$ = nodo_ternario(AST_DECL_FUNC, vFunc, $4, NULL, NULL);
       }
 ;
@@ -148,7 +150,10 @@ decl_func_extern:
 decl_var_global:
       tipo_decl ID T_ASIGNACION expr T_PUNTOC
       {
-          AstValor v = { .s = $2.s, .tipoDef = $1->v->tipoDef, .linea = yylineno }; 
+          AstValor v = {0};
+          v.s = $2.s;
+          v.tipoDef = $1->v->tipoDef;
+          v.linea = yylineno;
           $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
       }
 ;
@@ -186,7 +191,10 @@ decls_sentencias:
 decl_or_sentencia:
       tipo ID T_ASIGNACION expr T_PUNTOC
       {
-          AstValor v = { .s = $2.s, .tipoDef = $1->v->tipoDef, .linea = yylineno };
+          AstValor v = {0};
+          v.s = $2.s;
+          v.tipoDef = $1->v->tipoDef;
+          v.linea = yylineno;
           $$ = nodo_binario(AST_DECL_VAR, v, $1, $4);
       }
     | sentencia { $$ = $1; }
@@ -217,7 +225,8 @@ sentencia:
 llamada_func:
     ID T_PA expresiones T_PC
     {
-        AstValor v={.linea=yylineno};
+        AstValor v = {0};
+        v.linea=yylineno;
          $$ = nodo_binario(AST_LLAMADA, v, nodo_hoja(AST_ID,$1), $3);
     }
 ;
@@ -226,7 +235,8 @@ llamada_func:
 asignacion:
       ID T_ASIGNACION expr
       { 
-        AstValor v={.linea=yylineno};
+        AstValor v = {0};
+        v.linea = yylineno;
         $$ = nodo_binario(AST_ASIGNACION, v, nodo_hoja(AST_ID,$1), $3);
       }
 ;
@@ -247,7 +257,7 @@ lista_expr:
 lista_param:
       tipo ID
       {
-          AstValor v = (AstValor){0};
+          AstValor v = {0};
           v.s = $2.s;
           v.tipoDef = $1->v->tipoDef;
           v.linea = yylineno;
@@ -255,7 +265,7 @@ lista_param:
       }
     | lista_param T_COMA tipo ID
       {
-          AstValor v = (AstValor){0};
+          AstValor v = {0};
           v.s = $4.s;
           v.tipoDef = $3->v->tipoDef;
           v.linea = yylineno;

@@ -24,7 +24,7 @@ Nodo* nodo_hoja(AstTipo t, AstValor v) {
     if ((t == AST_ID) && v.s) {
         n->v->s = strdup(v.s);
     }
-    n->esBloqueDeFuncion = 0;
+    n->v->esExtern = v.esExtern;
     return n;
 }
 
@@ -47,7 +47,7 @@ Nodo* nodo_binario(AstTipo t, AstValor v, Nodo* hi, Nodo* hd) {
         exit(1);
     }
     *n->v = v;
-    n->esBloqueDeFuncion = 0;
+    n->v->esExtern = v.esExtern;
     return n;
 }
 
@@ -70,7 +70,7 @@ Nodo* nodo_ternario(AstTipo t, AstValor v, Nodo* hi, Nodo* hd, Nodo* extra) {
         exit(1);
     }
     *n->v = v;
-    n->esBloqueDeFuncion = 0;
+    n->v->esExtern = v.esExtern;
     return n;
 }
 

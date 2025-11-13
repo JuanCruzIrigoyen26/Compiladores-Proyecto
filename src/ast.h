@@ -60,13 +60,14 @@ typedef struct {
     int esParametro; // Marca si es parametro
     int linea;       // Línea donde aparece el token
     int offset;      // Variable o temporal local en la pila
+    int esExtern;    // 1 si la función es extern, 0 si no
+    int esBloqueDeFuncion; 
 } AstValor;
 
 // Nodo del AST
 typedef struct Nodo {
     AstTipo tipo;    // Tipo de nodo (AST_INT, AST_OP, etc.)
     AstValor *v;     // Valor asociado al nodo
-    int esBloqueDeFuncion;
     struct Nodo *hi; // Hijo izquierdo (para binarios o secuencias)
     struct Nodo *hd; // Hijo derecho
     struct Nodo *extra; 

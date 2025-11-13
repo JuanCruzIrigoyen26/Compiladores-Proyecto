@@ -110,7 +110,7 @@ static void chequearBloque(Nodo* bloque) {
     if (!bloque) return;
 
     // si es cuerpo de función → ya abrimos nivel antes
-    if (bloque->esBloqueDeFuncion) {
+    if (bloque->v->esBloqueDeFuncion) {
         if (bloque->hi) chequearNodo(bloque->hi);
         if (bloque->hd) chequearNodo(bloque->hd);
         if (bloque->extra) chequearNodo(bloque->extra);
@@ -174,6 +174,9 @@ static void chequearNodo(Nodo* nodo) {
         case AST_DECL_FUNC: {
             insertarSimbolo(nodo->v);
             chequearMainDecl(nodo);
+            if (nodo->v->esExtern) {
+                break; // No hay cuerpo que chequear
+            }
             int tipoAnterior = tipoFuncionActual;
             tipoFuncionActual = nodo->v->tipoDef;
 
