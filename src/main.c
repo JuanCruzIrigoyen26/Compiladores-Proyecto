@@ -241,7 +241,7 @@ int main(int argc, char *argv[]) {
         }
 
         case ETAPA_OUT: {
-            printf("Etapa: OUT → generando código objeto final en %s\n", archivoSalida);
+            printf("Etapa: OUT → generando ejecutable final\n");
 
             inicializarTS();
             archivoSalidaSem = NULL;
@@ -252,26 +252,43 @@ int main(int argc, char *argv[]) {
                 verificarMainFinal();
 
                 if (hayErrorSemantico) {
-                    fprintf(stderr, "Se detectaron errores semánticos. No se generará el código objeto.\n");
+                    fprintf(stderr, "Se detectaron errores semánticos. No se generará el ejecutable.\n");
                 } else {
-                    FILE* out = fopen(archivoSalida, "w");
-                    if (!out) {
-                        perror("Error al crear archivo de salida");
+                    char archivoAsm[256];
+                    generarNombreSalida(archivoEntrada, ".s", archivoAsm);
+
+                    FILE* outAsm = fopen(archivoAsm, "w");
+                    if (!outAsm) {
+                        perror("Error al crear archivo assembler");
                         break;
                     }
 
                     CodigoIntermedio* gen = crearGenerador();
                     generarCodigoIntermedio(gen, raiz);
+                    generarCodigoObjeto(gen, outAsm);
+                    fclose(outAsm);
 
-                    generarCodigoObjeto(gen, out);
-                    fclose(out);
-                    printf("Código objeto generado correctamente: %s\n", archivoSalida);
+                    char ejecutable[256];
+                    strcpy(ejecutable, archivoEntrada);
+                    char* punto = strrchr(ejecutable, '.');
+                    if (punto) *punto = '\0'; 
+
+                    char comando[512];
+                    sprintf(comando, "gcc -no-pie -o %s %s", ejecutable, archivoAsm);
+
+                    int r = system(comando);
+                    if (r != 0) {
+                        fprintf(stderr, "Error: GCC falló compilando el ejecutable.\n");
+                    } else {
+                        printf("Ejecutable generado correctamente: %s\n", ejecutable);
+                    }
                 }
             } else {
-                fprintf(stderr, "Error: Parsing falló. No se generó código objeto.\n");
+                fprintf(stderr, "Error: Parsing falló. No se generó ejecutable.\n");
             }
             break;
         }
+
     }
     fclose(yyin);
     return 0;

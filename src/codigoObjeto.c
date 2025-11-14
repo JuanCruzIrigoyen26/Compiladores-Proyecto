@@ -55,11 +55,12 @@ static const char* attAddr(const char* op) {
         }
         
         // Asumir [var_global] -> var_global
-        sprintf(att_mem_buf, "%s", inner);
+        sprintf(att_mem_buf, "%s(%%rip)", inner);
         return att_mem_buf;
     } else {
         // Si es una variable global (sin corchetes), se referencia por nombre
-        return op;
+        sprintf(att_mem_buf, "%s(%%rip)", op);
+        return att_mem_buf;
     }
 }
 
@@ -336,7 +337,7 @@ static void moverARegistro(const char* reg, const char* src, FILE* out) {
     if (esConstante(src)) {
         fprintf(out, "    mov $%s, %%%s\n", src, reg); 
     } else {
-        fprintf(out, "    mov %s, %%%s\n", attAddr(src), reg); 
+        fprintf(out, "    movq %s, %%%s\n", attAddr(src), reg); 
     }
 }
 
@@ -389,7 +390,7 @@ static void cargarEnRAX(const char* op, FILE* out) {
     if (esConstante(op)) {
         fprintf(out, "    mov $%s, %%rax\n", op);
     } else {
-        fprintf(out, "    mov %s, %%rax\n", attAddr(op)); 
+        fprintf(out, "    movq %s, %%rax\n", attAddr(op)); 
     }
 }
 
@@ -412,7 +413,7 @@ static void cargarEnRBX(const char* op, FILE* out) {
     if (esConstante(op)) {
         fprintf(out, "    mov $%s, %%rbx\n", op);
     } else {
-        fprintf(out, "    mov %s, %%rbx\n", attAddr(op));
+        fprintf(out, "    movq %s, %%rbx\n", attAddr(op));
     }
 }
 
@@ -420,7 +421,7 @@ static void cargarEnRBX(const char* op, FILE* out) {
 // Guarda lo que contiene rax en la dirección de destino
 static void guardarDesdeRAX(const char* dst, FILE* out) {
     if (!dst) { fprintf(out, "    # guardarDesdeRAX(dst=NULL)\n"); return; }
-    fprintf(out, "    mov %%rax, %s\n", attAddr(dst)); 
+    fprintf(out, "    movq %%rax, %s\n", attAddr(dst)); 
 }
 
 // Funcion auxiliar para traducir la operación de asignación de código intermedio a código objeto
@@ -430,7 +431,7 @@ static void asignarTraduccion(FILE* out, const char* dst, const char* src) {
         return;
     }
     if (esConstante(src)) {
-        fprintf(out, "    mov $%s, %s\n", src, attAddr(dst)); 
+        fprintf(out, "    movq $%s, %s\n", src, attAddr(dst)); 
     }else { 
         cargarEnRAX(src, out);
         guardarDesdeRAX(dst, out);
