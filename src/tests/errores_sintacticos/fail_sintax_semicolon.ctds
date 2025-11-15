@@ -1,0 +1,6 @@
+program {
+    void main() {
+        integer x = 5 // <-- Falta el punto y coma
+        x = 10;
+    }
+}

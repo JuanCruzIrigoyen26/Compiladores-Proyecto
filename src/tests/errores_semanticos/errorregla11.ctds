@@ -1,0 +1,9 @@
+program {
+    void main() {
+        bool b = true;
+        integer n = 1;
+        if (b == n) then {   // ERROR: comparar bool con integer
+            n = n + 1;
+        }
+    }
+}

@@ -1,0 +1,8 @@
+program {
+    void print_int(integer i) extern;
+
+    void main() {
+        integer x = 0;
+        x = print_int(1); // ERROR: 'print_int' es void y no puede ser usada en una expresión
+    }
+}

@@ -1,7 +1,6 @@
 program {
     integer x = 5;
     bool flag = true;
-
     void main() {
         integer y = 10;
         y = x + 3;

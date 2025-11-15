@@ -1,0 +1,5 @@
+program {
+    integer f() {
+        return;   // Error: return sin valor en función int
+    }
+}

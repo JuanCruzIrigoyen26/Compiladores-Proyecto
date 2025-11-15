@@ -1,0 +1,9 @@
+program {
+    integer cuadrado(integer n) {
+        return n * n;
+    }
+
+    void main() {
+        cuadrado(true);   // Error: tipo de argumento no coincide (bool vs int)
+    }
+}

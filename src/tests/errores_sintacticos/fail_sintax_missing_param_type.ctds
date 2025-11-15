@@ -1,0 +1,7 @@
+program {
+    // ERROR: 'y' no tiene tipo (integer o bool)
+    void mi_func(integer x, y) {
+    }
+
+    void main() { }
+}

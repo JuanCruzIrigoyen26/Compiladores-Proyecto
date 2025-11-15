@@ -1,0 +1,6 @@
+program {
+    void main() {
+        integer x = 5;
+    // Falta la llave de cierre de main
+}
+// Falta la llave de cierre de program

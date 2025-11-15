@@ -1,0 +1,4 @@
+program {
+    integer = 5; // ERROR: Falta el ID de la variable
+    void main() { }
+}

@@ -1,0 +1,25 @@
+program {
+    void print_int(integer i) extern;
+
+    void main() {
+        bool flag = true;
+        
+        // Prueba de AND (&&)
+        if (false && (flag == false)) then {
+             print_int(999); // No debe entrar aquí
+        }
+        
+        if (flag) then {
+            print_int(1); // DEBE IMPRIMIR 1
+        }
+
+        // Prueba de OR (||)
+        if (true || (flag == false)) then {
+            print_int(2); // DEBE IMPRIMIR 2
+        }
+
+        if (flag) then {
+            print_int(3); // DEBE IMPRIMIR 3
+        }
+    }
+}

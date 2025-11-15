@@ -1,0 +1,5 @@
+program {
+    void main() {
+        y = 5;   // Error: y no declarada
+    }
+}

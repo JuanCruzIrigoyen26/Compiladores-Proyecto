@@ -1,0 +1,8 @@
+program {
+    void main() {
+        integer x = 5;
+        if (x == 5 then { // Falta el ')' de cierre
+            x = 1;
+        }
+    }
+}

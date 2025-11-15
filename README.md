@@ -5,9 +5,10 @@ Integrantes: Irigoyen Juan Cruz - Marysol Gutierrez
 Proyecto centrado en el desarrollo de un compilador para el lenguaje de programación TDS25.
 En esta rama se encuentra la última versión del proyecto actual. 
 
-## Ramas de Prueba
+## Descripción
 
-Se han creado las siguientes ramas para probar las diferentes funcionalidades que se implementen durante el transcurso de desarrollo del proyecto:
+En esta etapa se toma como entrada el **código intermedio** generado previamente y se produce un **código objeto en pseudo-assembly x86-64**, mostrado por pantalla.  
+El objetivo es traducir correctamente las instrucciones de tres direcciones a instrucciones en bajo nivel (sin optimizaciones).
 
 - Main (Última versión del proyecto)
 - scanner-parser (Rama de prueba del analizador léxico y sintáctico)

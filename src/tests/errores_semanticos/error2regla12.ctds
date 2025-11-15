@@ -1,0 +1,8 @@
+program {
+    void main() {
+        integer n = 5;
+        if (!n) then {   // ERROR: ! solo aplica a bool
+            n = n + 1;
+        }
+    }
+}

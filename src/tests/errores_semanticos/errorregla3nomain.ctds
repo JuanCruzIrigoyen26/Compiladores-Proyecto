@@ -1,0 +1,7 @@
+program {
+    integer x = 5;
+    
+    integer f() {
+        return x;
+    }
+} // Fin del programa sin 'main'

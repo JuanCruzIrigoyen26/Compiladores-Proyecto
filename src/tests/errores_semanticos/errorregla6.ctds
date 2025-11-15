@@ -1,0 +1,5 @@
+program {
+    void f() {
+        return 5;   // Error: return con expresión en función void
+    }
+}

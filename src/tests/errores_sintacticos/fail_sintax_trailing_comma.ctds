@@ -1,0 +1,6 @@
+program {
+    integer get_int() extern;
+    void main() {
+        get_int(5, ); // ERROR: Coma colgante en llamada
+    }
+}

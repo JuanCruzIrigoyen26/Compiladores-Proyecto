@@ -1,0 +1,16 @@
+program {
+    integer x = 5;
+
+    /* Esto es un comentario de bloque
+       que se abre pero...
+    
+
+    void main() {
+        // ...el scanner cree que todo esto sigue siendo
+        // parte del comentario, ya que nunca
+        // encuentra un "*/"
+        x = 10;
+    }
+}
+
+// El archivo termina sin que el comentario se cierre.

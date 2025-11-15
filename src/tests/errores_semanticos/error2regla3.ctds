@@ -1,0 +1,3 @@
+program {
+    void main(integer x) { }   // Error: main no debe tener parámetros
+}

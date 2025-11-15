@@ -1,0 +1,5 @@
+program {
+    void main() {
+        x = 5;   //"Identificador usado antes de ser declarado"
+    }
+}
