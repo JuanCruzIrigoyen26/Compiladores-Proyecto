@@ -5,7 +5,7 @@ program {
         bool flag = true;
         
         // Prueba de AND (&&)
-        if (false && (flag = false)) then {
+        if (false && (flag == false)) then {
              print_int(999); // No debe entrar aquí
         }
         
@@ -14,7 +14,7 @@ program {
         }
 
         // Prueba de OR (||)
-        if (true || (flag = false)) then {
+        if (true || (flag == false)) then {
             print_int(2); // DEBE IMPRIMIR 2
         }
 

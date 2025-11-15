@@ -8,8 +8,8 @@ program {
 
     void main() {
         // 2. Prueba de inicialización por defecto
-        integer x_def;
-        bool b_def;
+        integer x_def = 0;
+        bool b_def = false;
 
         print_int(x_def); // DEBE IMPRIMIR 0
 
