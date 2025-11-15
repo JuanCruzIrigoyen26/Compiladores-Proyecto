@@ -2,14 +2,22 @@
 
 Integrantes: Irigoyen Juan Cruz - Marysol Gutierrez
 
-En esta rama se implementa la **generación de código objeto** del compilador.
+Proyecto centrado en el desarrollo de un compilador para el lenguaje de programación TDS25.
+En esta rama se encuentra la última versión del proyecto actual. 
 
 ## Descripción
 
 En esta etapa se toma como entrada el **código intermedio** generado previamente y se produce un **código objeto en pseudo-assembly x86-64**, mostrado por pantalla.  
 El objetivo es traducir correctamente las instrucciones de tres direcciones a instrucciones en bajo nivel (sin optimizaciones).
 
-## Compilación y Ejecución
+- Main (Última versión del proyecto)
+- scanner-parser (Rama de prueba del analizador léxico y sintáctico)
+- ast-ts (Rama de Prueba del árbol de sintaxis abstracta, tabla de símbolos y analizador semantico)
+- codigo_intermedio (Rama de prueba del codigo intermedio)
+- codigo_objeto (Rama de prueba del codigo objeto)
+- interfaz_cmd (Rama de prueba de la interfaz de comandos)
+
+## Comandos de ejecución
 
 Para compilar los archivos escriba los siguientes comandos en terminal:
 
