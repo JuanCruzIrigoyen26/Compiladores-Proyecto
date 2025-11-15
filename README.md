@@ -11,15 +11,40 @@ El objetivo es traducir correctamente las instrucciones de tres direcciones a in
 
 ## Compilación y Ejecución
 
-Para compilar y ejecutar los archivos escriba los siguientes comandos en terminal:
+Para compilar los archivos escriba los siguientes comandos en terminal:
 
 ```
 
 bison -d bison.y
 flex lexico.l
-gcc -o parser bison.tab.c lex.yy.c ast.c ts.c analizador_semantico.c codigoIntermedio.c codigoObjeto.c main.c -lfl
-./parser tests/nombreTest.txt
+gcc -o c-tds main.c bison.tab.c lex.yy.c ast.c ts.c analizador_semantico.c codigoIntermedio.c codigoObjeto.c -lfl
 
 ```
 
-En la carpeta tests se encuentran diferentes ejemplos para probar el parser. Por ejemplo: tests/test1.txt
+Para generar el archivo ejecutable escriba el siguiente comando en terminal:
+
+```
+
+ ./c-tds nombreArchivo.ctds
+
+```
+
+Para generar el archivo de salida de la etapa deseada (scan, parse, sem, codinter, assembly) escriba el siguiente comando en terminal:
+
+```
+
+ ./c-tds -target (etapa) nombreArchivo.ctds
+
+```
+
+Para renombrar el archivo ejecutable escriba el siguiente comando en terminal:
+
+```
+
+-o nombreArchivo
+
+```
+
+## Carpetas de testing
+
+Dentro de las carpetas de tests, se encuentra casos de programas del lenguaje TDS25 que se ejecutan correctamente, casos de errores semánticos y casos de errores sintácticos.
