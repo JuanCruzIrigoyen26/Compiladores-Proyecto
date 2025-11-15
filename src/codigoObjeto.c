@@ -194,6 +194,7 @@ void generarCodigoObjeto(CodigoIntermedio* generador, FILE* out) {
                 localCount = 0;
                 funcReturn = 0;
                 paramIndex = 0;
+                paramStackCount = 0;
                 Instr* aux = actual->next;
                 while (aux && aux->tipo != INSTR_FUNC_END) {
                     if (aux->tipo == INSTR_VAR_LOCAL)
@@ -203,7 +204,10 @@ void generarCodigoObjeto(CodigoIntermedio* generador, FILE* out) {
                 fprintf(out, "\n%s:\n", actual->res.s); 
                 fprintf(out, "    push %%rbp\n"); 
                 fprintf(out, "    mov %%rsp, %%rbp\n"); 
-                fprintf(out, "    sub $%d, %%rsp\n", localCount * 8); 
+
+                int bytesTemp = localCount * 8;
+                int alineacion = (bytesTemp % 16 == 0) ? 8 : 0;
+                fprintf(out, "    sub $%d, %%rsp\n", bytesTemp + alineacion); 
                 break;
             case INSTR_FUNC_END:
                 if (!funcReturn) {

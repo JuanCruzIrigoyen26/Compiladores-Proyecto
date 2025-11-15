@@ -20,6 +20,16 @@ letra [a-zA-Z_]
 
 %%
 
+[ \t\r\n]+          { /* ignorar espacios y saltos de línea */ }  /* Espacios en blanco */
+
+"//"[^\n]*              { /* ignorar comentario de línea */ }   /* Comentario de Línea */
+"/*"                { contador_comentario = 1; BEGIN(COMENTARIO); } /* Comentario de Bloque */
+
+<COMENTARIO>"/*"    { contador_comentario++; }
+<COMENTARIO>"*/"    { if (--contador_comentario == 0) BEGIN(INITIAL); }
+<COMENTARIO>\n      { yylineno++; }
+<COMENTARIO>.       { /* ignorar */ }
+
 "integer"   { return T_INT; }       /* Palabras Reservadas */
 "bool"      { return T_BOOL; } 
 "void"      { return T_VOID; } 
@@ -74,17 +84,6 @@ letra [a-zA-Z_]
 ")"         { return T_PC; }
 "{"         { return T_LA; }
 "}"         { return T_LC; }
-
-"//".*              { /* ignorar comentario de línea */ }   /* Comentario de Línea */
-
-"/*"                { contador_comentario = 1; BEGIN(COMENTARIO); } /* Comentario de Bloque */
-
-<COMENTARIO>"/*"    { contador_comentario++; }
-<COMENTARIO>"*/"    { if (--contador_comentario == 0) BEGIN(INITIAL); }
-<COMENTARIO>\n      { yylineno++; }
-<COMENTARIO>.       { /* ignorar */ }
-
-[ \t\r\n]+          { /* ignorar espacios y saltos de línea */ }  /* Espacios en blanco */
 
 .   { fprintf(stderr, "Caracter inválido '%s' en línea %d\n", yytext, yylineno); }  /* Caracteres Inválidos */
 

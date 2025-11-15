@@ -274,7 +274,7 @@ int main(int argc, char *argv[]) {
                     if (punto) *punto = '\0'; 
 
                     char comando[512];
-                    sprintf(comando, "gcc -no-pie -o %s %s", ejecutable, archivoAsm);
+                    sprintf(comando, "gcc -no-pie -o %s %s funcionesTests.c", ejecutable, archivoAsm);
 
                     int r = system(comando);
                     if (r != 0) {
